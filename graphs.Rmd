@@ -1,0 +1,264 @@
+---
+title: "DM_HT_COVID19"
+author: "Oscar J. Ponce & Francisco Barrera"
+date: "5/2/2020"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(dev = 'pdf')
+
+library("metafor")
+library("dplyr")
+library("tidyverse")
+library("gt")
+library("XML")
+library("grid")
+library("grImport")
+library("readxl")
+library("lme4")
+library("forestplot")
+library("tidyr")
+library("ggplot2")
+library("lattice")
+library("rmarkdown")
+library(grid)
+library(DescTools)
+
+```
+
+
+## Data cleaning & Databases information
+
+Data was cleaned via RStudio. All databases are found in the file named "Databases" located in the github projected called "DM_HT_COVID19". 
+
+A total of four databases were used:
+
+1. **general_info**: contains ID and real author names with RoB results.
+2. **proportions**: contains data needed to perform meta-analysis of proportions.
+3. **effectsize**: contains data neded to calculate meta-analysis of relative risks.
+4. **unimulti**: contains reported univaraite or multivariate analysis of our exposure and outcomes of interest. 
+
+```{r cleaning1 - general info, echo=FALSE}
+info <- read.csv("C:/Users/Oscar Ponce/Documents/Research/GitHub/dm_ht_covid/databases/general_info.csv")
+
+
+names(info)[1] <- 'id'
+names(info)[3] <- 'author'
+```
+
+```{r cleaning2 - proportions, echo=FALSE}
+prev1 <- read.csv("C:/Users/Oscar Ponce/Documents/Research/GitHub/dm_ht_covid/databases/proportions.csv")
+
+
+names(prev1)[names(prev1) == "analyzed_n"] <- "n"
+names(prev1)[names(prev1) == "n1"] <- "events"
+names(prev1)[names(prev1) == "selection_criteria"] <- "group"
+names(prev1)[names(prev1) == "country_1"] <- "country"
+
+prev1$group[prev1$group == 'asymptomatic'] <- 'general'
+prev1$group[prev1$group == 'general_prexisting_cardiac_conditions'] <- 'cardiac'
+prev1$group[prev1$group == 'general_cardiac_injury\r\n'] <- 'cardiac'
+
+prev1$setting[prev1$setting == 'both_'] <- 'both'
+prev1$setting[prev1$setting == 'both_and_community'] <- 'overall'
+prev1$setting[prev1$setting == 'in-patient'] <- 'inpatient'
+prev1$setting[prev1$setting == 'out-patient'] <- 'outpatient'
+
+prev1$country[prev1$country == 'republic_of_korea'] <- 'korea'
+prev1$country[is.na(prev1$country)] <- 'hong_kong'
+
+prev1$final_exposure[prev1$final_exposure == 
+                       "diabetes_hypertension"] <- 'DM & HTN'
+prev1$final_exposure[prev1$final_exposure == 
+                       "diabetes"] <- 'DM'
+prev1$final_exposure[prev1$final_exposure == 
+                       "hypertension"] <- 'HTN'
+
+prev1$pop1 <- ifelse((prev1$group == "death" & prev1$setting =="overall"),"death",
+                     ifelse((prev1$group == "general" & prev1$setting =="outpatient"), "outpatient",
+                            ifelse((prev1$group == "general" & prev1$setting =="inpatient")| 
+                                     (prev1$group == "severe" & prev1$setting =="inpatient") |
+                                     (prev1$group == "cardiac" & prev1$setting =="nr") |
+                                     (prev1$group == "cardiac" & prev1$setting =="inpatient"), "inpatient", ""))) 
+
+
+prev1$pop2 <- ifelse (( prev1$group =="severe"), "severe", "")
+prev1 <- prev1[,-c(17:27)]
+
+```
+
+```{r cleaning3 - effectsize, echo=FALSE}
+univ <- read.csv("C:/Users/Oscar Ponce/Documents/Research/GitHub/dm_ht_covid/databases/effectsize.csv")
+
+names(univ)[names(univ) == "selection_criteria"] <- 'group'
+univ$group[univ$group == 'general_prexisting_cardiac_conditions'] <- 'cardiac'
+univ$group[univ$group == 'general_cardiac_injury\r\n'] <- 'cardiac'
+univ$group[univ$group == 'asymptomatic'] <- 'general'
+univ$group[univ$group == 'general_influenza'] <- 'general'
+names(univ)[names(univ) == 'id...20']<- 'id'
+```
+
+```{r cleaning4 - unimulti, echo=FALSE}
+unimulti <- read.csv("C:/Users/Oscar Ponce/Documents/Research/GitHub/dm_ht_covid/databases/unimulti.csv")
+
+unimulti <- unimulti[!(unimulti$`Time of measure of exposure`=="Symptom onset"),-8]
+unimulti <- unimulti[!(unimulti$id %in% c(9123, 9171)), ]
+
+names(unimulti)[4] <- 'unimulti'
+names(unimulti)[5] <- 'adjusted'
+names(unimulti)[7] <- 'effect'
+names(unimulti)[8] <- 'eff'
+names(unimulti)[9] <- 'llci'
+names(unimulti)[10] <- 'ulci'
+names(unimulti)[11] <- 'p'
+
+unimulti[2][unimulti[2]=="Diabetes"] <- 'diabetes'
+unimulti[2][unimulti[2]=="Hypertension"] <- 'hypertension'
+
+unimulti[3][unimulti[3]=="Death"] <- 'death'
+unimulti[3][unimulti[3]=="Severe disease at admission"] <- 'severe'
+unimulti[3][unimulti[3]=="Severe/Critical Pneumonia"] <- 'severe'
+
+unimulti[4][unimulti[4]=="Multivariate (From admission)"] <- 'multivariate'
+unimulti[4][unimulti[4]=="Multivariate"] <- 'multivariate'
+
+unimulti$p <- as.numeric(unimulti$p)
+unimulti$p2 <- ifelse(unimulti$p == 0.001, 
+                      paste("<",formatC(unimulti$p, format='f', digits =3)), 
+                      formatC(unimulti$p, format='f', digits =3)) 
+
+dm1 <- subset(unimulti, exposure == 'diabetes' & outcome == 'death' & unimulti == 'univariate')
+dm2 <- subset(unimulti, exposure == 'diabetes' & outcome == 'death' & unimulti == 'multivariate')
+
+ht1 <- subset(unimulti, exposure == 'hypertension' & outcome == 'severe' & unimulti == 'multivariate')
+ht2 <- subset(unimulti, exposure == 'hypertension' & outcome == 'death' & unimulti == 'univariate')
+
+univ$author <- info$author[match(univ$id, info$id)]
+
+```
+
+
+## Proportions - summary of forest plots
+
+```{r analysis for summary of forest plots, echo=FALSE}
+ma1 <- rma.glmm(measure="PLO", xi=events, ni=n, subset=(final_exposure=="DM"), 
+                data=prev1)
+expma1 <- predict(ma1, transf=transf.ilogit, digits=3)
+
+ma2 <- rma(measure="PLO", xi=events, ni=n, 
+           subset=(final_exposure=="DM" & group=="general" &
+                     pop1=="outpatient" ), data=prev1)
+expma2 <- predict(ma2, transf=transf.ilogit, digits=3)
+
+ma3 <- rma.glmm(measure="PLO", xi=events, ni=n, 
+                subset=(final_exposure=="DM" & pop1 =="inpatient" ), data=prev1)
+expma3 <- predict(ma3, transf=transf.ilogit, digits=3)
+```
+
+
+
+
+
+```{r cleaning5 - for individual forestplots, echo=FALSE}
+a <- BinomCI(prev1$events, prev1$n, 
+             conf.level = 0.95,
+             method = "logit")
+prev1 <- cbind(prev1, a)
+prev1[63,19] <- 0.02
+prev1[63,20] <- 0.00
+prev1[63,21] <- 0.22
+
+prev1$prop <- paste(formatC(prev1$est, format='f', digits =2)," ",
+                    "(",formatC(prev1$lwr.ci, format='f', digits =2),
+                    "-",formatC(prev1$upr.ci, format='f', digits=2),")")
+prev1$rate <- paste(prev1$events, "/",prev1$n)
+
+prev1 <- prev1[order(prev1$est),]
+```
+
+##Primer forestplot individual
+
+
+```{r forestplot1 - prop - DM in overall, echo=FALSE}
+
+fma1 <- subset(prev1, final_exposure=="DM")
+fma1 <- rbind(fma1, NA)
+
+
+tfma1 <- cbind( 
+  c( "Author", fma1$author, 
+     paste("Overall proportion for", ma1$k.eff, "studies","\n", 
+           "(Tau^2 = ", (formatC(ma1$tau2, digits=2, format="f")), ", df = ", (ma1$k - ma1$p),
+           ", p ", (ifelse(ma1$QEp.Wld < 0.001, 
+                           paste("< 0.001"),
+                           paste("= ", formatC(ma1$QEp.Wld, digits=3, format="f")))),
+           "; ", "I^2", " = ", (formatC(ma1$I2, digits=1, format="f")), "%)")),
+  c( "Frequency (n/N)",fma1$rate, paste(sum(ma1$xi), " / ",sum(ma1$ni))),
+  c( "Prevalence (95% CI)", fma1$prop, 
+     paste(formatC(expma1$pred, format='f', digits =2), 
+           " (",formatC(expma1$ci.lb, format='f', digits=2),
+           "-", formatC(expma1$ci.ub, format='f', digits=2), ")")))
+
+tfma1 <- rbind(tfma1, NA)
+
+rrsma1 <- structure(list(
+  mean = c(NA,  fma1$est, expma1$pred, NA),
+  lower = c(NA,   fma1$lwr.ci, expma1$ci.lb, NA),
+  upper = c(NA,   fma1$upr.ci, expma1$ci.ub, NA)),
+  .Names = c("mean", "lower", "upper"),
+  row.names = c(NA, -35L),
+  class = "data.frame")
+
+
+forestplot(tfma1,
+           graph.pos = 3,
+           zero = NA,
+           rrsma1,
+           new_page = TRUE,
+           colgap = unit(5, "mm"),
+           hrzl_lines = list("2" = gpar (lwd=1, columns=c(1:4), col="black") 
+           ),
+           lineheight=unit(0.5,'cm'),
+           line.margin = 2,
+           is.summary = c(T, rep(F, 32), T, F),
+           align = c("l","c"),
+           ci.vertices = FALSE,
+           txt_gp = fpTxtGp(label =gpar (cex=0.8), 
+                            ticks = gpar(cex = 0.8, fontface="bold"),
+                            summary = gpar(cex = 0.8),
+                            xlab = gpar(cex=0.8)),
+           xticks = c(0, 0.1, 0.2, 0.3, 0.4,0.5),
+           xlog=FALSE,
+           clip = c(0,  0.4),
+           grid = gpar(lty=3, col="gray"),
+           lwd.xaxis = 1,
+           lwd.ci = 2.2,
+           graphwidth = unit(10,"cm"),
+           col=fpColors(box="black",line="grey", axes="grey20", summary="black"))
+```
+
+
+
+
+
+
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
