@@ -1,3 +1,4 @@
+library(rlang)
 library("metafor")
 library("dplyr")
 library("tidyverse")
@@ -14,10 +15,15 @@ library("lattice")
 library("rmarkdown")
 library(grid)
 library(DescTools)
+library(devtools)
+library(DataExplorer)
+library(installr)
+
+RSTUDIO_PANDOC="/anaconda2/bin/pandoc"
+PATH="/anaconda2/bin/:${PATH}"
 
 options(dplyr.print_max = 500)
 options(tibble.width = NULL)
-
 
 
 #General info of included articles
