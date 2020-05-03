@@ -20,13 +20,6 @@ options(tibble.width = NULL)
 
 
 
-#####Claning Data#####
-getwd()
-list.files()
-
-
-prev1 <- read.csv("C:/Users/Oscar Ponce/Documents/Research/GitHub/dm_ht_covid/databases/proportions.csv")
-
 #General info of included articles
 info <- read.csv("C:/Users/Oscar Ponce/Documents/Research/GitHub/dm_ht_covid/databases/general_info.csv")
 
@@ -37,6 +30,7 @@ names(info)[3] <- 'author'
 
 #General info of included articles
 
+prev1 <- read.csv("C:/Users/Oscar Ponce/Documents/Research/GitHub/dm_ht_covid/databases/proportions.csv")
 
 names(prev1)[names(prev1) == "analyzed_n"] <- "n"
 names(prev1)[names(prev1) == "n1"] <- "events"
@@ -174,7 +168,8 @@ expma1 <- predict(ma1, transf=transf.ilogit, digits=3)
 #Individual graph for ma1 (trial)
 
 fma1 <- subset(prev1, final_exposure=="DM")
-fma1 <- fma1 %>% add_row( .before = 32) 
+fma1 <- rbind(fma1, NA)
+
 
 tfma1 <- cbind( 
   c( "Author", fma1$author, 
@@ -182,13 +177,15 @@ tfma1 <- cbind(
            "(Tau^2 = ", (formatC(ma1$tau2, digits=2, format="f")), ", df = ", (ma1$k - ma1$p),
            ", p ", (ifelse(ma1$QEp.Wld < 0.001, 
                            paste("< 0.001"),
-                           paste("= ", formatC(ma1$QEp.Wld, digits=2, format="f")))),
+                           paste("= ", formatC(ma1$QEp.Wld, digits=3, format="f")))),
            "; ", "I^2", " = ", (formatC(ma1$I2, digits=1, format="f")), "%)")),
   c( "Frequency (n/N)",fma1$rate, paste(sum(ma1$xi), " / ",sum(ma1$ni))),
   c( "Prevalence (95% CI)", fma1$prop, 
      paste(formatC(expma1$pred, format='f', digits =2), 
            " (",formatC(expma1$ci.lb, format='f', digits=2),
            "-", formatC(expma1$ci.ub, format='f', digits=2), ")")))
+
+tfma1 <- rbind(tfma1, NA)
 
 rrsma1 <- structure(list(
   mean = c(NA,  fma1$est, expma1$pred, NA),
@@ -198,9 +195,8 @@ rrsma1 <- structure(list(
   row.names = c(NA, -35L),
   class = "data.frame")
 
-tfma1 <- rbind(tfma1, NA)
 
-trellis.device(device="windows", height = 25, width = 40, color=TRUE)
+trellis.device(device="windows", height = 7, width = 12, color=TRUE)
 forestplot(tfma1,
            graph.pos = 3,
            zero = NA,
@@ -211,14 +207,14 @@ forestplot(tfma1,
            ),
            lineheight=unit(0.5,'cm'),
            line.margin = 2,
-           is.summary = c(T, rep(F, 32), T),
+           is.summary = c(T, rep(F, 32), T, F),
            align = c("l","c"),
            ci.vertices = FALSE,
            txt_gp = fpTxtGp(label =gpar (cex=0.8), 
                             ticks = gpar(cex = 0.8, fontface="bold"),
                             summary = gpar(cex = 0.8),
                             xlab = gpar(cex=0.8)),
-           xticks = c(0, 0.1, 0.2, 0.3, 0.4,0.5),
+           xticks = c(0, 0.1, 0.2, 0.3, 0.4,0.5, 0.6, 0.7),
            xlog=FALSE,
            clip = c(0,  0.4),
            grid = gpar(lty=3, col="gray"),
@@ -266,16 +262,17 @@ tfma3 <- cbind(
            " (",formatC(expma3$ci.lb, format='f', digits=2),
            "-", formatC(expma3$ci.ub, format='f', digits=2), ")")))
 
+tfma3 <- rbind(tfma3, NA)
+
 
 rrsma3 <- structure(list(
   mean = c(NA,  fma3$est, expma3$pred, NA),
   lower = c(NA,  fma3$lwr.ci, expma3$ci.lb, NA),
   upper = c(NA,  fma3$upr.ci, expma3$ci.ub, NA)),
   .Names = c("mean", "lower", "upper"),
-  row.names = c(NA, -30L),
+  row.names = c(NA, -29L),
   class = "data.frame")
 
-tfma3 <- rbind(tfma3, NA)
 
 trellis.device(device="windows", height = 25, width = 40, color=TRUE)
 forestplot(tfma3,
@@ -288,14 +285,14 @@ forestplot(tfma3,
            ),
            lineheight=unit(0.5,'cm'),
            line.margin = 2,
-           is.summary = c(T, rep(F, 27), T, F),
+           is.summary = c(T, rep(F, 26), T, F),
            align = c("l","c"),
            ci.vertices = FALSE,
            txt_gp = fpTxtGp(label =gpar (cex=0.8), 
                             ticks = gpar(cex = 0.8, fontface="bold"),
                             summary = gpar(cex = 0.8),
                             xlab = gpar(cex=0.8)),
-           xticks = c(0, 0.1, 0.2, 0.3, 0.4,0.5),
+           xticks = c(0, 0.1, 0.2, 0.3, 0.4,0.5, 0.6, 0.7),
            xlog=FALSE,
            clip = c(0,  0.4),
            grid = gpar(lty=3, col="gray"),
@@ -331,6 +328,9 @@ tfma4 <- cbind(
            " (",formatC(expma4$ci.lb, format='f', digits=2),
            "-", formatC(expma4$ci.ub, format='f', digits=2), ")")))
 
+tfma4 <- rbind(tfma4, NA)
+
+
 rrsma4 <- structure(list(
   mean = c(NA,  fma4$est, expma4$pred, NA),
   lower = c(NA,  fma4$lwr.ci, expma4$ci.lb, NA),
@@ -339,7 +339,6 @@ rrsma4 <- structure(list(
   row.names = c(NA, -9L),
   class = "data.frame")
 
-tfma4 <- rbind(tfma4, NA)
 
 trellis.device(device="windows", height = 25, width = 40, color=TRUE)
 forestplot(tfma4,
@@ -359,7 +358,7 @@ forestplot(tfma4,
                             ticks = gpar(cex = 0.8, fontface="bold"),
                             summary = gpar(cex = 0.8),
                             xlab = gpar(cex=0.8)),
-           xticks = c(0, 0.1, 0.2, 0.3, 0.4,0.5),
+           xticks = c(0, 0.1, 0.2, 0.3, 0.4,0.5, 0.6, 0.7),
            xlog=FALSE,
            clip = c(0,  0.4),
            grid = gpar(lty=3, col="gray"),
@@ -386,7 +385,6 @@ expma6 <- predict(ma6, transf=transf.ilogit, digits=3)
 
 
 
-
 fma6 <- subset(prev1, final_exposure=="HTN"  & !(id== 1))
 fma6 <- rbind(fma6, NA)
 
@@ -404,6 +402,8 @@ tfma6 <- cbind(
            " (",formatC(expma6$ci.lb, format='f', digits=2),
            "-", formatC(expma6$ci.ub, format='f', digits=2), ")")))
 
+tfma6 <- rbind(tfma6, NA)
+
 rrsma6 <- structure(list(
   mean = c(NA,  fma6$est, expma6$pred, NA),
   lower = c(NA,  fma6$lwr.ci, expma6$ci.lb, NA),
@@ -412,7 +412,6 @@ rrsma6 <- structure(list(
   row.names = c(NA, -41L),
   class = "data.frame")
 
-tfma6 <- rbind(tfma6, NA)
 
 
 trellis.device(device="windows", height = 25, width = 40, color=TRUE)
@@ -538,17 +537,17 @@ tfma8 <- cbind(
            " (",formatC(expma8$ci.lb, format='f', digits=2),
            "-", formatC(expma8$ci.ub, format='f', digits=2), ")")))
 
+tfma8 <- rbind(tfma8, NA)
+
 rrsma8 <- structure(list(
   mean = c(NA,  fma8$est, expma8$pred, NA),
   lower = c(NA,  fma8$lwr.ci, expma8$ci.lb, NA),
   upper = c(NA,  fma8$upr.ci, expma8$ci.ub, NA)),
   .Names = c("mean", "lower", "upper"),
-  row.names = c(NA, -37L),
+  row.names = c(NA, -36L),
   class = "data.frame")
 
-tfma8 <- rbind(tfma8, NA)
 
-View(tfma8)
 
 trellis.device(device="windows", height = 25, width = 40, color=TRUE)
 forestplot(tfma8,
@@ -561,7 +560,7 @@ forestplot(tfma8,
            ),
            lineheight=unit(0.5,'cm'),
            line.margin = 2,
-           is.summary = c(T, rep(F, 34), T, F),
+           is.summary = c(T, rep(F, 33), T, F),
            align = c("l","c"),
            ci.vertices = FALSE,
            txt_gp = fpTxtGp(label =gpar (cex=0.8), 
@@ -656,7 +655,6 @@ par(ask=F)
 
 
 #HTN & DM
-print(prev1[prev1$final_exposure=="DM & HTN" ,c(4,5,11,12,14,15,16,28,29)], order(prev1$id))
 
 ma10 <- rma.glmm(measure="PLO", xi=events, ni=n, 
                  subset=(final_exposure=="DM & HTN" ), data=prev1)
@@ -736,16 +734,13 @@ expma12 <- predict(ma12, transf=transf.ilogit, digits=3)
 
 
 
-
-
-
-
 x <- data.frame(rbind(
+  c( "subgroup", "N of Studies", "n", "N", "i2", "est", "llci", "ulci"),
   c( "Overall",  ma1[[15]], sum(ma1[[55]]), sum(ma1[[61]]), ma1[[28]], expma1[[1]], expma1[[3]], expma1[[4]]), 
   c( "Outpatient",  ma2[[15]], 27, sum(ma2[[50]]), "na", expma2[[1]], expma2[[3]], expma2[[4]]), 
   c( "Inpatient",  ma3[[15]], sum(ma3[[55]]), sum(ma3[[61]]), ma3[[28]], expma3[[1]], expma3[[3]], expma3[[4]]), 
   c( "Severe COVID-19",  ma4[[15]], sum(ma4[[55]]), sum(ma4[[61]]), ma4[[28]], expma4[[1]], expma4[[3]], expma4[[4]]),
-  c( "Death",  ma5[[15]], 16, sum(ma5[[50]]), "na", expma5[[1]], expma5[[3]], expma5[[4]]),
+  c( "Non-survivors",  ma5[[15]], 16, sum(ma5[[50]]), "na", expma5[[1]], expma5[[3]], expma5[[4]]),
   
   c( "Overall",  ma6[[15]], sum(ma6[[55]]), sum(ma6[[61]]), ma6[[28]], expma6[[1]], expma6[[3]], expma6[[4]]), 
   c( "Outpatient",  ma7[[15]], sum(ma7[[55]]), sum(ma7[[61]]), ma7[[28]], expma7[[1]], expma7[[3]], expma7[[4]]), 
@@ -758,53 +753,51 @@ x <- data.frame(rbind(
 ), 
 stringsAsFactors = FALSE) 
 
+colnames(x) <- x[1,]
+x <- x[-1, ] 
 
+x$rate <- paste(x$n, "/", x$N)
+x[6:8] <- sapply(x[6:8],as.numeric)
 
-x[,2:8]<- sapply((x[,2:8]), as.numeric)
+x$i2 <-  as.numeric(x$i2)
+x$pr <- paste(formatC(x$est, format="f", digits =2), 
+              "95% CI", "(", formatC(x$llci, format="f", digits =2),
+              "-",
+              formatC(x$ulci, format='f', digits=2),")")
 
-x[,9] <- paste(x[,3],"/",x[,4])
-x[,10] <- paste("(",formatC(x[,7], format='f', digits =2),"-",formatC(x[,8], format='f', digits=2),")")
 round2 = function(x, n=0) {scale<-10^n; sign(x)*trunc(abs(x)*scale+0.5)/scale}
-x[,11] <- formatC( round2(x[,6], n=2), format='f', digits=2)
-x[,5] <- round2(x[,5], n=0)
-x$X5[c(1,3,4,6,7,8,9,10)] <- paste(x$X5[c(1,3,4,6,7,8,9,10)],"%")
-x[,5] <- replace_na(x[,5],"na")
-x[,9] <- as.character(x[,9])
+x$i2 <- round2(x$i2, n=0)
+x$i2 <- ifelse(is.na(x$i2), NA, paste(x$i2, "%"))
 
-x[,12] <- paste(x[,11], " ", x[,10])
+x <- as_tibble(x)
+x <- x %>% add_row(subgroup="Prevalence of Diabetes", .before = 1) 
+x <- x %>% add_row(subgroup="Prevalence of Hypertension", .before = 7) 
+x <- x %>% add_row(subgroup="Prevalence of Diabetes and Hypertension", .before = 12) 
 
-view(x)
-
-
-head <- c("Disease and subgroup", 'N of Studies', 'n', 'N', 'I^2', NA, NA, NA,
-          'Frequency (n/N)', 'ci', 'pr2', 'Prevalence (95%CI)')
-x1 <- rbind(head, x)
-x1[,6:8]<- sapply((x1[,6:8]), as.numeric)
-
-
-x1 <- x1 %>% add_row(X1='Diabetes', .before = 2) 
-x1 <- x1 %>% add_row(X1="Hypertension", .before = 8) 
-x1 <- x1 %>% add_row(X1="Diabetes and Hypertension", .before = 13) 
-
-
+x1 <- cbind(
+  c(NA, x$subgroup, NA),
+  c("N of studies", x$`N of Studies`, NA),
+  c("n/N", x$rate, NA),
+  c("I^2", x$i2, NA),
+  c("Prevalence (95% CI)", x$pr, NA))
+  
 sub1 <- c(3,9,14) #overall
-x1$X1[sub1] <- paste("  ",x1$X1[sub1]) 
+x1$V1 [sub1] <- paste("  ",x1$V1[sub1]) 
+
 
 sub2 <- c(4,5,7,10,11) #outpatient, inpatient, death
-x1$X1[sub2] <- paste("     ",x1$X1[sub2]) 
+x1$V1[sub2] <- paste("     ",x1$V1[sub2]) 
 
 sub3 <- c(6,12,15) #severe
-x1$X1[sub3] <- paste("          ",x1$X1[sub3]) 
-
-x2 <- x1[,c(1,2,9,5,12)]
+x1$V1[sub3] <- paste("          ",x1$V1[sub3]) 
 
 
 rrs <- structure(list(
-  mean = c(x1$X6),
-  lower = c(x1$X7),
-  upper = c(x1$X8)),
+  mean = c(NA, x$est, NA),
+  lower = c(NA, x$llci, NA),
+  upper = c(NA, x$ulci, NA)),
   .Names = c("mean", "lower", "upper"),
-  row.names = c(NA, -15L),
+  row.names = c(NA, -16L),
   class = "data.frame")
 
 trellis.device(device="windows", height = 25, width = 40, color=TRUE)
@@ -815,8 +808,8 @@ forestplot(x2,
            zero = NA,
            new_page = TRUE,
            colgap = unit(5, "mm"),
-           hrzl_lines = list("2" = gpar (lwd=1, columns=c(1:6), col="black"), "3" = gpar (lwd=0.1, columns=c(1:5), col="black"), 
-                             "9" = gpar (lwd=0.1, columns=c(1:5), col="black"), "14" = gpar (lwd=0.1, columns=c(1:5), col="black"), 
+           hrzl_lines = list("2" = gpar (lwd=1, columns=c(1:6), col="black"), "3" = gpar (lwd=0.1, columns=c(1:5), col="grey"), 
+                             "9" = gpar (lwd=0.1, columns=c(1:5), col="grey"), "14" = gpar (lwd=0.1, columns=c(1:5), col="grey"), 
                              "16" = gpar (lwd=1, columns=c(1:6), col="black")),
            lineheight=unit(0.5,'cm'),
            line.margin = 2,

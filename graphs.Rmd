@@ -2,11 +2,14 @@
 title: "DM_HT_COVID19"
 author: "Oscar J. Ponce & Francisco Barrera"
 date: "5/2/2020"
-output: github_document
+output: 
+ html_document:
+    keep_md: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.height=7, fig.width = 12, dpi=900)
 
 library("metafor")
 library("dplyr")
@@ -39,7 +42,7 @@ A total of four databases were used:
 3. **effectsize**: contains data neded to calculate meta-analysis of relative risks.
 4. **unimulti**: contains reported univaraite or multivariate analysis of our exposure and outcomes of interest. 
 
-```{r cleaning1 - general info, echo=FALSE}
+```{r cleaning1 - general info, echo=FALSE, message=FALSE, warning=FALSE}
 info <- read.csv("C:/Users/Oscar Ponce/Documents/Research/GitHub/dm_ht_covid/databases/general_info.csv")
 
 
@@ -154,11 +157,145 @@ expma2 <- predict(ma2, transf=transf.ilogit, digits=3)
 ma3 <- rma.glmm(measure="PLO", xi=events, ni=n, 
                 subset=(final_exposure=="DM" & pop1 =="inpatient" ), data=prev1)
 expma3 <- predict(ma3, transf=transf.ilogit, digits=3)
+
+ma4 <- rma.glmm(measure="PLO", xi=events, ni=n, 
+                subset=(final_exposure=="DM" & pop2=="severe"), data=prev1)
+expma4 <- predict(ma4, transf=transf.ilogit, digits=3)
+
+ma5 <- rma(measure="PLO", xi=events, ni=n, 
+           subset=(final_exposure=="DM" & pop1=="death"), data=prev1)
+expma5 <- predict(ma5, transf=transf.ilogit, digits=3)
+
+ma6 <- rma.glmm(measure="PLO", xi=events, ni=n, 
+                subset=(final_exposure=="HTN"  & !(id== 1)), data=prev1)
+expma6 <- predict(ma6, transf=transf.ilogit, digits=3)
+
+ma7 <- rma.glmm(measure="PLO", xi=events, ni=n, 
+                subset=(final_exposure=="HTN" & pop1=="outpatient"), data=prev1)
+expma7 <- predict(ma7, transf=transf.ilogit, digits=3)
+
+ma8 <- rma.glmm(measure="PLO", xi=events, ni=n, 
+                subset=(final_exposure=="HTN" & pop1 =="inpatient"), data=prev1)
+expma8 <- predict(ma8, transf=transf.ilogit, digits=3)
+
+ma9 <- rma.glmm(measure="PLO", xi=events, ni=n, 
+                subset=(final_exposure=="HTN" & pop2=="severe"), data=prev1)
+expma9 <- predict(ma9, transf=transf.ilogit, digits=3)
+
+ma10 <- rma.glmm(measure="PLO", xi=events, ni=n, 
+                 subset=(final_exposure=="DM & HTN" ), data=prev1)
+expma10 <- predict(ma10, transf=transf.ilogit, digits=3)
+
+ma12 <- rma(measure="PLO", xi=events, ni=n, 
+            subset=(final_exposure=="DM & HTN" & pop2=="severe"), data=prev1)
+expma12 <- predict(ma12, transf=transf.ilogit, digits=3)
 ```
 
 
+```{r summary of prevalence forestplots, echo=FALSE, message=FALSE, warning=FALSE}
+x <- data.frame(rbind(
+  c( "subgroup", "studies", "n", "N", "i2", "est", "llci", "ulci"),
+  c( "Overall",  ma1[[15]], sum(ma1[[55]]), sum(ma1[[61]]), ma1[[28]], expma1[[1]], expma1[[3]], expma1[[4]]), 
+  c( "Outpatient",  ma2[[15]], 27, sum(ma2[[50]]), "na", expma2[[1]], expma2[[3]], expma2[[4]]), 
+  c( "Inpatient",  ma3[[15]], sum(ma3[[55]]), sum(ma3[[61]]), ma3[[28]], expma3[[1]], expma3[[3]], expma3[[4]]), 
+  c( "Severe COVID-19",  ma4[[15]], sum(ma4[[55]]), sum(ma4[[61]]), ma4[[28]], expma4[[1]], expma4[[3]], expma4[[4]]),
+  c( "Non-survivors",  ma5[[15]], 16, sum(ma5[[50]]), "na", expma5[[1]], expma5[[3]], expma5[[4]]),
+  
+  c( "Overall",  ma6[[15]], sum(ma6[[55]]), sum(ma6[[61]]), ma6[[28]], expma6[[1]], expma6[[3]], expma6[[4]]), 
+  c( "Outpatient",  ma7[[15]], sum(ma7[[55]]), sum(ma7[[61]]), ma7[[28]], expma7[[1]], expma7[[3]], expma7[[4]]), 
+  c( "Inpatient",  ma8[[15]], sum(ma8[[55]]), sum(ma8[[61]]), ma8[[28]], expma8[[1]], expma8[[3]], expma8[[4]]), 
+  c( "Severe COVID-19",  ma9[[15]], sum(ma9[[55]]), sum(ma9[[61]]), ma9[[28]], expma9[[1]], expma9[[3]], expma9[[4]]),  
+  
+  c( "Overall",  ma10[[15]], sum(ma10[[55]]), sum(ma10[[61]]), ma10[[28]], expma10[[1]], expma10[[3]], expma10[[4]]), 
+  c( "Severe COVID-19",  ma12[[15]], 2, sum(ma12[[50]]), "na", expma12[[1]], expma12[[3]], expma12[[4]]) 
+  
+), 
+stringsAsFactors = FALSE) 
+
+colnames(x) <- x[1,]
+x <- x[-1, ] 
+
+x$rate <- paste(x$n, "/", x$N)
+x[6:8] <- sapply(x[6:8],as.numeric)
+
+x$i2 <-  as.numeric(x$i2)
+x$pr <- paste(formatC(x$est, format="f", digits =2), 
+              "95% CI", "(", formatC(x$llci, format="f", digits =2),
+              "-",
+              formatC(x$ulci, format='f', digits=2),")")
+
+round2 = function(x, n=0) {scale<-10^n; sign(x)*trunc(abs(x)*scale+0.5)/scale}
+x$i2 <- round2(x$i2, n=0)
+x$i2 <- ifelse(is.na(x$i2), paste("NA"), paste(x$i2, "%"))
+
+x <- as_tibble(x)
+x <- x %>% add_row(subgroup="Prevalence of Diabetes", .before = 1) 
+x <- x %>% add_row(subgroup="Prevalence of Hypertension", .before = 7) 
+x <- x %>% add_row(subgroup="Prevalence of Diabetes and Hypertension", .before = 12) 
+x <- as.data.frame(x)
+
+prevalence <- cbind(
+  c(NA, x$subgroup),
+  c("N of studies", x$studies),
+  c("n/N", x$rate),
+  c("I^2", x$i2),
+  c("Prevalence (95% CI)", x$pr))
+
+sub1 <- c(3,9,14) #overall
+prevalence[,1][sub1] <- paste("  ",prevalence[,1][sub1]) 
+
+sub2 <- c(4,5,7,10,11) #outpatient, inpatient, death
+prevalence[,1][sub2] <- paste("     ",prevalence[,1][sub2]) 
+
+sub3 <- c(6,12,15) #severe
+prevalence[,1][sub3] <- paste("          ",prevalence[,1][sub3]) 
 
 
+rrsprev <- structure(list(
+  mean = c(NA, x$est),
+  lower = c(NA, x$llci),
+  upper = c(NA, x$ulci)),
+  .Names = c("mean", "lower", "upper"),
+  row.names = c(NA, -15L),
+  class = "data.frame")
+
+forestplot(prevalence,
+           rrsprev,
+           fn.ci_norm = fpDrawDiamondCI,
+           graph.pos = 5,
+           zero = NA,
+           new_page = TRUE,
+           colgap = unit(5, "mm"),
+           hrzl_lines = list("2" = gpar (lwd=1, columns=c(1:6), col="black"), 
+                             "3" = gpar (lwd=0.1, columns=c(1:5), col="grey"), 
+                             "9" = gpar (lwd=0.1, columns=c(1:5), col="grey"), 
+                             "14" = gpar (lwd=0.1, columns=c(1:5), col="grey"), 
+                             "16" = gpar (lwd=1, columns=c(1:6), col="black")),
+           lineheight=unit(0.7,'cm'),
+           line.margin = 2,
+           is.summary = c(T, T, F, F, F, F, F, T, F, F, F, F, T, F, F),
+           align = c("l","c", "c", "c"),
+           ci.vertices = TRUE,
+           txt_gp = fpTxtGp(ticks = gpar(cex = 0.8, fontface="bold"),
+                            xlab  = gpar(cex = 0.8),
+                            label = gpar(cex = 0.8),
+                            summary = gpar(cex = 0.8)),
+           col=fpColors(box="black", 
+                        line="grey", 
+                        summary="black", 
+                        zero='grey20', 
+                        axes='grey20'),
+           xticks = c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6),
+           xticks.digits = c(0, 0.1, 0.2, 0.3),
+           xlog=FALSE,
+           grid=gpar(lty=3, col="gray"),
+           boxsize = unit(0.22, "cm"),
+           lwd.xaxis = 1,
+           lwd.ci = 2.2,
+           graphwidth = unit(8,"cm"))
+```
+
+## Proportions - individual forest plots
 
 ```{r cleaning5 - for individual forestplots, echo=FALSE}
 a <- BinomCI(prev1$events, prev1$n, 
@@ -177,11 +314,15 @@ prev1$rate <- paste(prev1$events, "/",prev1$n)
 prev1 <- prev1[order(prev1$est),]
 ```
 
-##Primer forestplot individual
+> Abbreviations of all individvual graphs:
+>
+> * n = number of events
+> * N = population size
+> * CI = confidence interval
 
 
-```{r forestplot1 - prop - DM in overall, echo=FALSE, fig.height=7, fig.width=12, dpi=900}
-
+**Suppl Figure 1 - Forest plot of meta-analysis of DM frequency in patients with COVID-19**
+```{r forestplot1 - prop - DM in overall, echo=FALSE}
 fma1 <- subset(prev1, final_exposure=="DM")
 fma1 <- rbind(fma1, NA)
 
@@ -238,26 +379,404 @@ forestplot(tfma1,
            col=fpColors(box="black",line="grey", axes="grey20", summary="black"))
 ```
 
+  
+**Suppl Figure 2 - Forest plot of meta-analysis of DM frequency in hospitalized patients with COVID-19**
+```{r forestplot1 - prop - DM in inpatients, echo=FALSE}
+
+fma3 <- subset(prev1, final_exposure=="DM" & pop1 =="inpatient")
+fma3 <- rbind(fma3, NA)
+
+tfma3 <- cbind( 
+  c( "Author", fma3$author, 
+     paste("Overall proportion for", ma3$k.eff, "studies","\n", 
+           "(Tau^2 = ", (formatC(ma3$tau2, digits=2, format="f")), ", df = ", (ma3$k - ma3$p),
+           ", p ", (ifelse(ma3$QEp.Wld < 0.001, 
+                           paste("< 0.001"),
+                           paste("= ", formatC(ma3$QEp.Wld, digits=3, format="f")))),
+           "; ", "I^2", " = ", (formatC(ma3$I2, digits=1, format="f")), "%)")),
+  c( "Frequency (n/N)",fma3$rate, paste(sum(ma3$xi), " / ",sum(ma3$ni))),
+  c( "Prevalence (95% CI)", fma3$prop, 
+     paste(formatC(expma3$pred, format='f', digits =2), 
+           " (",formatC(expma3$ci.lb, format='f', digits=2),
+           "-", formatC(expma3$ci.ub, format='f', digits=2), ")")))
+
+tfma3 <- rbind(tfma3, NA)
 
 
+rrsma3 <- structure(list(
+  mean = c(NA,  fma3$est, expma3$pred, NA),
+  lower = c(NA,  fma3$lwr.ci, expma3$ci.lb, NA),
+  upper = c(NA,  fma3$upr.ci, expma3$ci.ub, NA)),
+  .Names = c("mean", "lower", "upper"),
+  row.names = c(NA, -29L),
+  class = "data.frame")
 
-
-
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+forestplot(tfma3,
+           graph.pos = 3,
+           zero = NA,
+           rrsma3,
+           new_page = TRUE,
+           colgap = unit(5, "mm"),
+           hrzl_lines = list("2" = gpar (lwd=1, columns=c(1:4), col="black") 
+           ),
+           lineheight=unit(0.5,'cm'),
+           line.margin = 2,
+           is.summary = c(T, rep(F, 26), T, F),
+           align = c("l","c"),
+           ci.vertices = FALSE,
+           txt_gp = fpTxtGp(label =gpar (cex=0.8), 
+                            ticks = gpar(cex = 0.8, fontface="bold"),
+                            summary = gpar(cex = 0.8),
+                            xlab = gpar(cex=0.8)),
+           xticks = c(0, 0.1, 0.2, 0.3, 0.4,0.5, 0.6, 0.7),
+           xlog=FALSE,
+           clip = c(0,  0.4),
+           grid = gpar(lty=3, col="gray"),
+           lwd.xaxis = 1,
+           lwd.ci = 2.2,
+           graphwidth = unit(10,"cm"),
+           col=fpColors(box="black",line="grey", axes="grey20", summary="black"))
 ```
 
-## Including Plots
+**Suppl Figure 3 - Forest plot of meta-analysis of DM frequency in patients with severe COVID-19**
+```{r forestplot1 - prop - DM in severe COVID-19, echo=FALSE, fig.height=4, fig.width = 12, dpi=900}
+fma4 <- subset(prev1, final_exposure=="DM" & pop2=="severe")
+fma4 <- rbind(fma4, NA)
 
-You can also embed plots, for example:
+tfma4 <- cbind( 
+  c( "Author", fma4$author, 
+     paste("Overall proportion for", ma4$k.eff, "studies","\n", 
+           "(Tau^2 = ", (formatC(ma4$tau2, digits=2, format="f")), ", df = ", (ma4$k - ma4$p),
+           ", p ", (ifelse(ma4$QEp.Wld < 0.001, 
+                           paste("< 0.001"),
+                           paste("= ", formatC(ma4$QEp.Wld, digits=3, format="f")))),
+           "; ", "I^2", " = ", (formatC(ma4$I2, digits=1, format="f")), "%)")),
+  c( "Frequency (n/N)",fma4$rate, paste(sum(ma4$xi), " / ",sum(ma4$ni))),
+  c( "Prevalence (95% CI)", fma4$prop, 
+     paste(formatC(expma4$pred, format='f', digits =2), 
+           " (",formatC(expma4$ci.lb, format='f', digits=2),
+           "-", formatC(expma4$ci.ub, format='f', digits=2), ")")))
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+tfma4 <- rbind(tfma4, NA)
+
+
+rrsma4 <- structure(list(
+  mean = c(NA,  fma4$est, expma4$pred, NA),
+  lower = c(NA,  fma4$lwr.ci, expma4$ci.lb, NA),
+  upper = c(NA,  fma4$upr.ci, expma4$ci.ub, NA)),
+  .Names = c("mean", "lower", "upper"),
+  row.names = c(NA, -9L),
+  class = "data.frame")
+
+
+forestplot(tfma4,
+           graph.pos = 3,
+           zero = NA,
+           rrsma4,
+           new_page = TRUE,
+           colgap = unit(5, "mm"),
+           hrzl_lines = list("2" = gpar (lwd=1, columns=c(1:4), col="black") 
+           ),
+           lineheight=unit(0.5,'cm'),
+           line.margin = 2,
+           is.summary = c(T, rep(F, 6), T, F),
+           align = c("l","c"),
+           ci.vertices = FALSE,
+           txt_gp = fpTxtGp(label =gpar (cex=0.8), 
+                            ticks = gpar(cex = 0.8, fontface="bold"),
+                            summary = gpar(cex = 0.8),
+                            xlab = gpar(cex=0.8)),
+           xticks = c(0, 0.1, 0.2, 0.3, 0.4,0.5, 0.6, 0.7),
+           xlog=FALSE,
+           clip = c(0,  0.4),
+           grid = gpar(lty=3, col="gray"),
+           lwd.xaxis = 1,
+           lwd.ci = 2.2,
+           graphwidth = unit(10,"cm"),
+           col=fpColors(box="black",line="grey", axes="grey20", summary="black"))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+**Suppl Figure 3 - Forest plot of meta-analysis of HT frequency in patients with COVID-19**
+```{r forestplot1  prop  HT in  COVID-19, echo=FALSE, fig.height = 9, fig.width = 12, dpi= 900}
+fma6 <- subset(prev1, final_exposure=="HTN"  & !(id== 1))
+fma6 <- rbind(fma6, NA)
+
+tfma6 <- cbind( 
+  c( "Author", fma6$author, 
+     paste("Overall proportion for", ma6$k.eff, "studies","\n", 
+           "(Tau^2 = ", (formatC(ma6$tau2, digits=2, format="f")), ", 
+           df = ", (ma6$k - ma6$p),
+           ", p ", (ifelse(ma6$QEp.Wld < 0.001, 
+                           paste("< 0.001"),
+                           paste("= ", formatC(ma6$QEp.Wld, digits=3, format="f")))),
+           "; ", "I^2", " = ", (formatC(ma6$I2, digits=1, format="f")), "%)")),
+  c( "Frequency (n/N)",fma6$rate, paste(sum(ma6$xi), " / ",sum(ma6$ni))),
+  c( "Prevalence (95% CI)", fma6$prop, 
+     paste(formatC(expma6$pred, format='f', digits =2), 
+           " (",formatC(expma6$ci.lb, format='f', digits=2),
+           "-", formatC(expma6$ci.ub, format='f', digits=2), ")")))
+
+tfma6 <- rbind(tfma6, NA)
+
+rrsma6 <- structure(list(
+  mean = c(NA,  fma6$est, expma6$pred, NA),
+  lower = c(NA,  fma6$lwr.ci, expma6$ci.lb, NA),
+  upper = c(NA,  fma6$upr.ci, expma6$ci.ub, NA)),
+  .Names = c("mean", "lower", "upper"),
+  row.names = c(NA, -41L),
+  class = "data.frame")
+
+forestplot(tfma6,
+           graph.pos = 3,
+           zero = NA,
+           rrsma6,
+           new_page = TRUE,
+           colgap = unit(5, "mm"),
+           hrzl_lines = list("2" = gpar (lwd=1, columns=c(1:4), col="black") 
+           ),
+           lineheight=unit(0.5,'cm'),
+           line.margin = 2,
+           is.summary = c(T, rep(F, 38), T, F),
+           align = c("l","c"),
+           ci.vertices = FALSE,
+           txt_gp = fpTxtGp(label =gpar (cex=0.8), 
+                            ticks = gpar(cex = 0.8, fontface="bold"),
+                            summary = gpar(cex = 0.8),
+                            xlab = gpar(cex=0.8)),
+           xticks = c(0, 0.1, 0.2, 0.3, 0.4,0.5, 0.6, 0.7),
+           xlog=FALSE,
+           clip = c(0,  0.4),
+           grid = gpar(lty=3, col="gray"),
+           lwd.xaxis = 1,
+           lwd.ci = 2.2,
+           graphwidth = unit(10,"cm"),
+           col=fpColors(box="black",line="grey", axes="grey20", summary="black"))
+```
+
+**Suppl Figure 4 - Forest plot of meta-analysis of HT frequency in ambulatory patients with COVID-19**
+
+```{r forestplot1 prop  HT in  outpatients COVID19, echo=FALSE, fig.height=4, fig.width = 12, dpi=900}
+fma7 <- subset(prev1, final_exposure=="HTN"  & pop1=="outpatient")
+fma7 <- rbind(fma7, NA)
+
+tfma7 <- cbind( 
+  c( "Author", fma7$author, 
+     paste("Overall proportion for", ma7$k.eff, "studies","\n", 
+           "(Tau^2 = ", (formatC(ma7$tau2, digits=2, format="f")), ", df = ", (ma7$k - ma7$p),
+           ", p ", (ifelse(ma7$QEp.Wld < 0.001, 
+                           paste("< 0.001"),
+                           paste("= ", formatC(ma7$QEp.Wld, digits=3, format="f")))),
+           "; ", "I^2", " = ", (formatC(ma7$I2, digits=1, format="f")), "%)")),
+  c( "Frequency (n/N)",fma7$rate, paste(sum(ma7$xi), " / ",sum(ma7$ni))),
+  c( "Prevalence (95% CI)", fma7$prop, 
+     paste(formatC(expma7$pred, format='f', digits =2), 
+           " (",formatC(expma7$ci.lb, format='f', digits=2),
+           "-", formatC(expma7$ci.ub, format='f', digits=2), ")")))
+
+rrsma7 <- structure(list(
+  mean = c(NA,  fma7$est, expma7$pred, NA),
+  lower = c(NA,  fma7$lwr.ci, expma7$ci.lb, NA),
+  upper = c(NA,  fma7$upr.ci, expma7$ci.ub, NA)),
+  .Names = c("mean", "lower", "upper"),
+  row.names = c(NA, -6L),
+  class = "data.frame")
+
+tfma7 <- rbind(tfma7, NA)
+
+forestplot(tfma7,
+           graph.pos = 3,
+           zero = NA,
+           rrsma7,
+           new_page = TRUE,
+           colgap = unit(5, "mm"),
+           hrzl_lines = list("2" = gpar (lwd=1, columns=c(1:4), col="black") 
+           ),
+           lineheight=unit(0.7,'cm'),
+           line.margin = 2,
+           is.summary = c(T, rep(F, 3), T, F),
+           align = c("l","c"),
+           ci.vertices = FALSE,
+           txt_gp = fpTxtGp(label =gpar (cex=0.8), 
+                            ticks = gpar(cex = 0.8, fontface="bold"),
+                            summary = gpar(cex = 0.8),
+                            xlab = gpar(cex=0.8)),
+           xticks = c(0, 0.1, 0.2, 0.3, 0.4,0.5),
+           xlog=FALSE,
+           clip = c(0,  0.4),
+           grid = gpar(lty=3, col="gray"),
+           lwd.xaxis = 1,
+           lwd.ci = 2.2,
+           graphwidth = unit(10,"cm"),
+           col=fpColors(box="black",line="grey", axes="grey20", summary="black"))
+```
+
+
+
+**Suppl Figure 5 - Forest plot of meta-analysis of HT frequency in hospitalized patients with COVID-19**
+```{r forestplot3 - prop - HT in  inpatient COVID-19, echo=FALSE, fig.height=7.5, fig.width = 12, dpi=900}
+fma8 <- subset(prev1, final_exposure=="HTN" & pop1 =="inpatient")
+fma8 <- rbind(fma8, NA)
+
+tfma8 <- cbind( 
+  c( "Author", fma8$author, 
+     paste("Overall proportion for", ma8$k.eff, "studies","\n", 
+           "(Tau^2 = ", (formatC(ma8$tau2, digits=2, format="f")), ", df = ", (ma8$k - ma8$p),
+           ", p ", (ifelse(ma8$QEp.Wld < 0.001, 
+                           paste("< 0.001"),
+                           paste("= ", formatC(ma8$QEp.Wld, digits=3, format="f")))),
+           "; ", "I^2", " = ", (formatC(ma8$I2, digits=1, format="f")), "%)")),
+  c( "Frequency (n/N)",fma8$rate, paste(sum(ma8$xi), " / ",sum(ma8$ni))),
+  c( "Prevalence (95% CI)", fma8$prop, 
+     paste(formatC(expma8$pred, format='f', digits =2), 
+           " (",formatC(expma8$ci.lb, format='f', digits=2),
+           "-", formatC(expma8$ci.ub, format='f', digits=2), ")")))
+
+tfma8 <- rbind(tfma8, NA)
+
+rrsma8 <- structure(list(
+  mean = c(NA,  fma8$est, expma8$pred, NA),
+  lower = c(NA,  fma8$lwr.ci, expma8$ci.lb, NA),
+  upper = c(NA,  fma8$upr.ci, expma8$ci.ub, NA)),
+  .Names = c("mean", "lower", "upper"),
+  row.names = c(NA, -36L),
+  class = "data.frame")
+
+forestplot(tfma8,
+           graph.pos = 3,
+           zero = NA,
+           rrsma8,
+           new_page = TRUE,
+           colgap = unit(5, "mm"),
+           hrzl_lines = list("2" = gpar (lwd=1, columns=c(1:4), col="black") 
+           ),
+           lineheight=unit(0.5,'cm'),
+           line.margin = 2,
+           is.summary = c(T, rep(F, 33), T, F),
+           align = c("l","c"),
+           ci.vertices = FALSE,
+           txt_gp = fpTxtGp(label =gpar (cex=0.8), 
+                            ticks = gpar(cex = 0.8, fontface="bold"),
+                            summary = gpar(cex = 0.8),
+                            xlab = gpar(cex=0.8)),
+           xticks = c(0, 0.1, 0.2, 0.3, 0.4,0.5, 0.6, 0.7),
+           xlog=FALSE,
+           clip = c(0,  0.4),
+           grid = gpar(lty=3, col="gray"),
+           lwd.xaxis = 1,
+           lwd.ci = 2.2,
+           graphwidth = unit(10,"cm"),
+           col=fpColors(box="black",line="grey", axes="grey20", summary="black"))
+```
+
+
+**Suppl Figure 6 - Forest plot of meta-analysis of HT frequency in patients with severe COVID-19**
+```{r forestplot4 - prop - HT in  severe COVID-19, echo=FALSE, fig.height=4, fig.width = 12, dpi=900}
+fma9 <- subset(prev1, final_exposure=="HTN" & pop2=="severe")
+fma9 <- rbind(fma9, NA)
+
+tfma9 <- cbind( 
+  c( "Author", fma9$author, 
+     paste("Overall proportion for", ma9$k.eff, "studies","\n", 
+           "(Tau^2 = ", (formatC(ma9$tau2, digits=2, format="f")), ", df = ", (ma9$k - ma9$p),
+           ", p ", (ifelse(ma9$QEp.Wld < 0.001, 
+                           paste("< 0.001"),
+                           paste("= ", formatC(ma9$QEp.Wld, digits=3, format="f")))),
+           "; ", "I^2", " = ", (formatC(ma9$I2, digits=1, format="f")), "%)")),
+  c( "Frequency (n/N)",fma9$rate, paste(sum(ma9$xi), " / ",sum(ma9$ni))),
+  c( "Prevalence (95% CI)", fma9$prop, 
+     paste(formatC(expma9$pred, format='f', digits =2), 
+           " (",formatC(expma9$ci.lb, format='f', digits=2),
+           "-", formatC(expma9$ci.ub, format='f', digits=2), ")")))
+
+rrsma9 <- structure(list(
+  mean = c(NA,  fma9$est, expma9$pred, NA),
+  lower = c(NA,  fma9$lwr.ci, expma9$ci.lb, NA),
+  upper = c(NA,  fma9$upr.ci, expma9$ci.ub, NA)),
+  .Names = c("mean", "lower", "upper"),
+  row.names = c(NA, -8L),
+  class = "data.frame")
+
+tfma9 <- rbind(tfma9, NA)
+
+forestplot(tfma9,
+           graph.pos = 3,
+           zero = NA,
+           rrsma9,
+           new_page = TRUE,
+           colgap = unit(5, "mm"),
+           hrzl_lines = list("2" = gpar (lwd=1, columns=c(1:4), col="black") 
+           ),
+           lineheight=unit(0.6,'cm'),
+           line.margin = 2,
+           is.summary = c(T, rep(F, 5), T, F),
+           align = c("l","c"),
+           ci.vertices = FALSE,
+           txt_gp = fpTxtGp(label =gpar (cex=0.8), 
+                            ticks = gpar(cex = 0.8, fontface="bold"),
+                            summary = gpar(cex = 0.8),
+                            xlab = gpar(cex=0.8)),
+           xticks = c(0, 0.1, 0.2, 0.3, 0.4,0.5, 0.6, 0.7),
+           xlog=FALSE,
+           clip = c(0,  0.4),
+           grid = gpar(lty=3, col="gray"),
+           lwd.xaxis = 1,
+           lwd.ci = 2.2,
+           graphwidth = unit(10,"cm"),
+           col=fpColors(box="black",line="grey", axes="grey20", summary="black"))
+```
+
+**Suppl Figure 7 - Forest plot of meta-analysis of HT and DM frequency in patients with COVID-19**
+```{r forestplot5 - prop - HT & DM in   COVID-19, echo=FALSE, fig.height=4, fig.width = 12, dpi=900}
+fma10 <- subset(prev1, final_exposure=="DM & HTN")
+fma10 <- rbind(fma10, NA)
+
+tfma10 <- cbind( 
+  c( "Author", fma10$author, 
+     paste("Overall proportion for", ma10$k.eff, "studies","\n", 
+           "(Tau^2 = ", (formatC(ma10$tau2, digits=2, format="f")), ", df = ", (ma10$k - ma10$p),
+           ", p ", (ifelse(ma10$QEp.Wld < 0.001, 
+                           paste("< 0.001"),
+                           paste("= ", formatC(ma10$QEp.Wld, digits=3, format="f")))),
+           "; ", "I^2", " = ", (formatC(ma10$I2, digits=1, format="f")), "%)")),
+  c( "Frequency (n/N)",fma10$rate, paste(sum(ma10$xi), " / ",sum(ma10$ni))),
+  c( "Prevalence (95% CI)", fma10$prop, 
+     paste(formatC(expma10$pred, format='f', digits =2), 
+           " (",formatC(expma10$ci.lb, format='f', digits=2),
+           "-", formatC(expma10$ci.ub, format='f', digits=2), ")")))
+
+rrsma10 <- structure(list(
+  mean = c(NA,  fma10$est, expma10$pred, NA),
+  lower = c(NA,  fma10$lwr.ci, expma10$ci.lb, NA),
+  upper = c(NA,  fma10$upr.ci, expma10$ci.ub, NA)),
+  .Names = c("mean", "lower", "upper"),
+  row.names = c(NA, -9L),
+  class = "data.frame")
+
+tfma10 <- rbind(tfma10, NA)
+
+forestplot(tfma10,
+           graph.pos = 3,
+           zero = NA,
+           rrsma10,
+           new_page = TRUE,
+           colgap = unit(5, "mm"),
+           hrzl_lines = list("2" = gpar (lwd=1, columns=c(1:4), col="black") 
+           ),
+           lineheight=unit(0.6,'cm'),
+           line.margin = 2,
+           is.summary = c(T, rep(F, 6), T, F),
+           align = c("l","c"),
+           ci.vertices = FALSE,
+           txt_gp = fpTxtGp(label =gpar (cex=0.8), 
+                            ticks = gpar(cex = 0.8, fontface="bold"),
+                            summary = gpar(cex = 0.8),
+                            xlab = gpar(cex=0.8)),
+           xticks = c(0, 0.1, 0.2, 0.3, 0.4,0.5),
+           xlog=FALSE,
+           clip = c(0,  0.4),
+           grid = gpar(lty=3, col="gray"),
+           lwd.xaxis = 1,
+           lwd.ci = 2.2,
+           graphwidth = unit(10,"cm"),
+           col=fpColors(box="black",line="grey", axes="grey20", summary="black"))
+```

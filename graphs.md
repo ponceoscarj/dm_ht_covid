@@ -21,35 +21,45 @@ A total of four databases were used:
 
 ## Proportions - summary of forest plots
 
-\#\#Primer forestplot individual
+![](graphs_files/figure-gfm/summary%20of%20prevalence%20forestplots-1.png)<!-- -->
 
+## Proportions - individual forest plots
+
+> Abbreviations of all individvual graphs:
+> 
+>   - n = number of events
+>   - N = population size
+>   - CI = confidence interval
+
+**Suppl Figure 1 - Forest plot of meta-analysis of DM frequency in
+patients with COVID-19**
 ![](graphs_files/figure-gfm/forestplot1%20-%20prop%20-%20DM%20in%20overall-1.png)<!-- -->
 
-This is an R Markdown document. Markdown is a simple formatting syntax
-for authoring HTML, PDF, and MS Word documents. For more details on
-using R Markdown see <http://rmarkdown.rstudio.com>.
+**Suppl Figure 2 - Forest plot of meta-analysis of DM frequency in
+hospitalized patients with COVID-19**
+![](graphs_files/figure-gfm/forestplot1%20-%20prop%20-%20DM%20in%20inpatients-1.png)<!-- -->
 
-When you click the **Knit** button a document will be generated that
-includes both content as well as the output of any embedded R code
-chunks within the document. You can embed an R code chunk like this:
+**Suppl Figure 3 - Forest plot of meta-analysis of DM frequency in
+patients with severe COVID-19**
+![](graphs_files/figure-gfm/forestplot1%20-%20prop%20-%20DM%20in%20severe%20COVID-19-1.png)<!-- -->
 
-``` r
-summary(cars)
-```
+**Suppl Figure 3 - Forest plot of meta-analysis of HT frequency in
+patients with COVID-19**
+![](graphs_files/figure-gfm/forestplot1%20prop%20HT%20in%20COVID-19-1.png)<!-- -->
 
-    ##      speed           dist       
-    ##  Min.   : 4.0   Min.   :  2.00  
-    ##  1st Qu.:12.0   1st Qu.: 26.00  
-    ##  Median :15.0   Median : 36.00  
-    ##  Mean   :15.4   Mean   : 42.98  
-    ##  3rd Qu.:19.0   3rd Qu.: 56.00  
-    ##  Max.   :25.0   Max.   :120.00
+**Suppl Figure 4 - Forest plot of meta-analysis of HT frequency in
+ambulatory patients with COVID-19**
 
-## Including Plots
+![](graphs_files/figure-gfm/forestplot1%20prop%20HT%20in%20outpatients%20COVID19-1.png)<!-- -->
 
-You can also embed plots, for example:
+**Suppl Figure 5 - Forest plot of meta-analysis of HT frequency in
+hospitalized patients with COVID-19**
+![](graphs_files/figure-gfm/forestplot3%20-%20prop%20-%20HT%20in%20inpatient%20COVID-19-1.png)<!-- -->
 
-![](graphs_files/figure-gfm/pressure-1.png)<!-- -->
+**Suppl Figure 6 - Forest plot of meta-analysis of HT frequency in
+patients with severe COVID-19**
+![](graphs_files/figure-gfm/forestplot4%20-%20prop%20-%20HT%20in%20severe%20COVID-19-1.png)<!-- -->
 
-Note that the `echo = FALSE` parameter was added to the code chunk to
-prevent printing of the R code that generated the plot.
+**Suppl Figure 7 - Forest plot of meta-analysis of HT and DM frequency
+in patients with COVID-19**
+![](graphs_files/figure-gfm/forestplot5%20-%20prop%20-%20HT%20&%20DM%20in%20COVID-19-1.png)<!-- -->
