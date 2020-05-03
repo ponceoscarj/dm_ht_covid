@@ -180,7 +180,7 @@ prev1 <- prev1[order(prev1$est),]
 ##Primer forestplot individual
 
 
-```{r forestplot1 - prop - DM in overall, echo=FALSE, fig.height=7, fig.width=12, dpi=600}
+```{r forestplot1 - prop - DM in overall, echo=FALSE, fig.height=7, fig.width=12, dpi=900}
 
 fma1 <- subset(prev1, final_exposure=="DM")
 fma1 <- rbind(fma1, NA)
