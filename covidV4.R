@@ -735,7 +735,7 @@ expma12 <- predict(ma12, transf=transf.ilogit, digits=3)
 
 
 x <- data.frame(rbind(
-  c( "subgroup", "N of Studies", "n", "N", "i2", "est", "llci", "ulci"),
+  c( "subgroup", "studies", "n", "N", "i2", "est", "llci", "ulci"),
   c( "Overall",  ma1[[15]], sum(ma1[[55]]), sum(ma1[[61]]), ma1[[28]], expma1[[1]], expma1[[3]], expma1[[4]]), 
   c( "Outpatient",  ma2[[15]], 27, sum(ma2[[50]]), "na", expma2[[1]], expma2[[3]], expma2[[4]]), 
   c( "Inpatient",  ma3[[15]], sum(ma3[[55]]), sum(ma3[[61]]), ma3[[28]], expma3[[1]], expma3[[3]], expma3[[4]]), 
@@ -773,36 +773,36 @@ x <- as_tibble(x)
 x <- x %>% add_row(subgroup="Prevalence of Diabetes", .before = 1) 
 x <- x %>% add_row(subgroup="Prevalence of Hypertension", .before = 7) 
 x <- x %>% add_row(subgroup="Prevalence of Diabetes and Hypertension", .before = 12) 
+x <- as.data.frame(x)
 
-x1 <- cbind(
-  c(NA, x$subgroup, NA),
-  c("N of studies", x$`N of Studies`, NA),
-  c("n/N", x$rate, NA),
-  c("I^2", x$i2, NA),
-  c("Prevalence (95% CI)", x$pr, NA))
-  
+prevalence <- cbind(
+  c(NA, x$subgroup),
+  c("N of studies", x$studies),
+  c("n/N", x$rate),
+  c("I^2", x$i2),
+  c("Prevalence (95% CI)", x$pr))
+
 sub1 <- c(3,9,14) #overall
-x1$V1 [sub1] <- paste("  ",x1$V1[sub1]) 
-
+prevalence[,1][sub1] <- paste("  ",prevalence[,1][sub1]) 
 
 sub2 <- c(4,5,7,10,11) #outpatient, inpatient, death
-x1$V1[sub2] <- paste("     ",x1$V1[sub2]) 
+prevalence[,1][sub2] <- paste("     ",prevalence[,1][sub2]) 
 
 sub3 <- c(6,12,15) #severe
-x1$V1[sub3] <- paste("          ",x1$V1[sub3]) 
+prevalence[,1][sub3] <- paste("          ",prevalence[,1][sub3]) 
 
 
-rrs <- structure(list(
-  mean = c(NA, x$est, NA),
-  lower = c(NA, x$llci, NA),
-  upper = c(NA, x$ulci, NA)),
+rrsprev <- structure(list(
+  mean = c(NA, x$est),
+  lower = c(NA, x$llci),
+  upper = c(NA, x$ulci)),
   .Names = c("mean", "lower", "upper"),
-  row.names = c(NA, -16L),
+  row.names = c(NA, -15L),
   class = "data.frame")
 
 trellis.device(device="windows", height = 25, width = 40, color=TRUE)
-forestplot(x2,
-           rrs,
+forestplot(prevalence,
+           rrsprev,
            fn.ci_norm = fpDrawDiamondCI,
            graph.pos = 5,
            zero = NA,
@@ -811,10 +811,10 @@ forestplot(x2,
            hrzl_lines = list("2" = gpar (lwd=1, columns=c(1:6), col="black"), "3" = gpar (lwd=0.1, columns=c(1:5), col="grey"), 
                              "9" = gpar (lwd=0.1, columns=c(1:5), col="grey"), "14" = gpar (lwd=0.1, columns=c(1:5), col="grey"), 
                              "16" = gpar (lwd=1, columns=c(1:6), col="black")),
-           lineheight=unit(0.5,'cm'),
+           lineheight=unit(0.7,'cm'),
            line.margin = 2,
            is.summary = c(T, T, F, F, F, F, F, T, F, F, F, F, T, F, F),
-           align = c("l","l"),
+           align = c("l","c", "c", "c"),
            ci.vertices = TRUE,
            txt_gp = fpTxtGp(ticks = gpar(cex = 0.8, fontface="bold"),
                             xlab  = gpar(cex = 0.8),
@@ -833,7 +833,6 @@ forestplot(x2,
            lwd.xaxis = 1,
            lwd.ci = 2.2,
            graphwidth = unit(8,"cm"))
-par(ask=F)
 
 
 help("forestplot")

@@ -496,7 +496,7 @@ forestplot(tfma4,
            col=fpColors(box="black",line="grey", axes="grey20", summary="black"))
 ```
 
-**Suppl Figure 3 - Forest plot of meta-analysis of HT frequency in patients with COVID-19**
+**Suppl Figure 4 - Forest plot of meta-analysis of HT frequency in patients with COVID-19**
 ```{r forestplot1  prop  HT in  COVID-19, echo=FALSE, fig.height = 9, fig.width = 12, dpi= 900}
 fma6 <- subset(prev1, final_exposure=="HTN"  & !(id== 1))
 fma6 <- rbind(fma6, NA)
@@ -553,7 +553,7 @@ forestplot(tfma6,
            col=fpColors(box="black",line="grey", axes="grey20", summary="black"))
 ```
 
-**Suppl Figure 4 - Forest plot of meta-analysis of HT frequency in ambulatory patients with COVID-19**
+**Suppl Figure 5 - Forest plot of meta-analysis of HT frequency in ambulatory patients with COVID-19**
 
 ```{r forestplot1 prop  HT in  outpatients COVID19, echo=FALSE, fig.height=4, fig.width = 12, dpi=900}
 fma7 <- subset(prev1, final_exposure=="HTN"  & pop1=="outpatient")
@@ -612,7 +612,7 @@ forestplot(tfma7,
 
 
 
-**Suppl Figure 5 - Forest plot of meta-analysis of HT frequency in hospitalized patients with COVID-19**
+**Suppl Figure 6 - Forest plot of meta-analysis of HT frequency in hospitalized patients with COVID-19**
 ```{r forestplot3 - prop - HT in  inpatient COVID-19, echo=FALSE, fig.height=7.5, fig.width = 12, dpi=900}
 fma8 <- subset(prev1, final_exposure=="HTN" & pop1 =="inpatient")
 fma8 <- rbind(fma8, NA)
@@ -669,7 +669,7 @@ forestplot(tfma8,
 ```
 
 
-**Suppl Figure 6 - Forest plot of meta-analysis of HT frequency in patients with severe COVID-19**
+**Suppl Figure 7 - Forest plot of meta-analysis of HT frequency in patients with severe COVID-19**
 ```{r forestplot4 - prop - HT in  severe COVID-19, echo=FALSE, fig.height=4, fig.width = 12, dpi=900}
 fma9 <- subset(prev1, final_exposure=="HTN" & pop2=="severe")
 fma9 <- rbind(fma9, NA)
@@ -725,7 +725,7 @@ forestplot(tfma9,
            col=fpColors(box="black",line="grey", axes="grey20", summary="black"))
 ```
 
-**Suppl Figure 7 - Forest plot of meta-analysis of HT and DM frequency in patients with COVID-19**
+**Suppl Figure 8 - Forest plot of meta-analysis of HT and DM frequency in patients with COVID-19**
 ```{r forestplot5 - prop - HT & DM in   COVID-19, echo=FALSE, fig.height=4, fig.width = 12, dpi=900}
 fma10 <- subset(prev1, final_exposure=="DM & HTN")
 fma10 <- rbind(fma10, NA)
