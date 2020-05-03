@@ -23,7 +23,7 @@ A total of four databases were used:
 
 \#\#Primer forestplot individual
 
-![](graphs_files/figure-gfm/forestplot1%20-%20prop%20-%20DM%20in%20overall-1.pdf)<!-- -->
+![](graphs_files/figure-gfm/forestplot1%20-%20prop%20-%20DM%20in%20overall-1.png)<!-- -->
 
 This is an R Markdown document. Markdown is a simple formatting syntax
 for authoring HTML, PDF, and MS Word documents. For more details on
@@ -49,7 +49,7 @@ summary(cars)
 
 You can also embed plots, for example:
 
-![](graphs_files/figure-gfm/pressure-1.pdf)<!-- -->
+![](graphs_files/figure-gfm/pressure-1.png)<!-- -->
 
 Note that the `echo = FALSE` parameter was added to the code chunk to
 prevent printing of the R code that generated the plot.
