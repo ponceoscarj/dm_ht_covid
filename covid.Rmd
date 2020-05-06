@@ -6,8 +6,9 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo=TRUE)
 knitr::opts_chunk$set(dpi=900)
+knitr::opts_chunk$set(dev="postscript")
 
 library("metafor")
 library("dplyr")
@@ -54,6 +55,10 @@ info <- read.csv("C:/Users/Oscar Ponce/Documents/Research/GitHub/dm_ht_covid/dat
 
 names(info)[1] <- 'id'
 names(info)[3] <- 'author'
+
+info$author[info$author=="?CDC COVID-19 RT, b."] <- "CDC COVID-19 RT, b."
+
+View(info)
 ```
 
 ```{r cleaning2_proportions, echo=FALSE}
@@ -85,15 +90,19 @@ prev1$final_exposure[prev1$final_exposure ==
                        "hypertension"] <- 'HTN'
 
 prev1$pop1 <- ifelse((prev1$group == "death" & prev1$setting =="overall"),"death",
-                     ifelse((prev1$group == "general" & prev1$setting =="outpatient"), "outpatient",
-                            ifelse((prev1$group == "general" & prev1$setting =="inpatient")| 
-                                     (prev1$group == "severe" & prev1$setting =="inpatient") |
-                                     (prev1$group == "cardiac" & prev1$setting =="nr") |
-                                     (prev1$group == "cardiac" & prev1$setting =="inpatient"), "inpatient", ""))) 
+              ifelse((prev1$group == "general" & prev1$setting =="outpatient"),   
+              "outpatient", 
+              ifelse((prev1$group == "general" & prev1$setting =="inpatient")| 
+              (prev1$group == "severe" & prev1$setting =="inpatient") |
+              (prev1$group == "cardiac" & prev1$setting =="nr") |
+              (prev1$group == "cardiac" & prev1$setting =="inpatient"), 
+              "inpatient", ""))) 
 
 
 prev1$pop2 <- ifelse (( prev1$group =="severe"), "severe", "")
 prev1 <- prev1[,-c(17:27)]
+
+prev1$author <- info$author[match(prev1$id, info$id)]
 
 ```
 
@@ -106,6 +115,9 @@ univ$group[univ$group == 'general_cardiac_injury\r\n'] <- 'cardiac'
 univ$group[univ$group == 'asymptomatic'] <- 'general'
 univ$group[univ$group == 'general_influenza'] <- 'general'
 names(univ)[names(univ) == 'id...20']<- 'id'
+
+univ$author <- info$author[match(univ$id, info$id)]
+
 ```
 
 ```{r cleaning4_unimulti, echo=FALSE}
@@ -145,7 +157,6 @@ dm2 <- subset(unimulti, exposure == 'diabetes' & outcome == 'death' & unimulti =
 ht1 <- subset(unimulti, exposure == 'hypertension' & outcome == 'severe' & unimulti == 'multivariate')
 ht2 <- subset(unimulti, exposure == 'hypertension' & outcome == 'death' & unimulti == 'univariate')
 
-univ$author <- info$author[match(univ$id, info$id)]
 
 ```
 
@@ -235,7 +246,7 @@ x$pr <- paste(formatC(x$est, format="f", digits =2),
 
 round2 = function(x, n=0) {scale<-10^n; sign(x)*trunc(abs(x)*scale+0.5)/scale}
 x$i2 <- round2(x$i2, n=0)
-x$i2 <- ifelse(is.na(x$i2), paste("NA"), paste(x$i2, "%"))
+x$i2 <- ifelse(is.na(x$i2), paste("na"), paste(x$i2, "%"))
 
 x <- as_tibble(x)
 x <- x %>% add_row(subgroup="Prevalence of Diabetes", .before = 1) 
@@ -283,7 +294,7 @@ forestplot(prevalence,
            lineheight=unit(0.7,'cm'),
            line.margin = 2,
            is.summary = c(T, T, F, F, F, F, F, T, F, F, F, F, T, F, F),
-           align = c("l","c", "c", "c"),
+           align = c("l","c", "c", "l"),
            ci.vertices = TRUE,
            txt_gp = fpTxtGp(ticks = gpar(cex = 0.8, fontface="bold"),
                             xlab  = gpar(cex = 0.8),
@@ -1009,6 +1020,12 @@ tabletext2 <- cbind(
      dm1$p2, NA, NA,
      ht2$p2, NA))
 
+tabletext2 <- as.data.frame(tabletext2)
+sub2 <- c(4,7)
+tabletext2$V1[sub2] <- paste("    ",tabletext2$V1[sub2]) 
+
+
+
 rrs2 <- structure(list(
   mean = c(NA,  NA, NA, dm1$eff, NA, NA, ht2$eff, NA),
   lower = c(NA,  NA, NA, dm1$llci, NA, NA, ht2$llci, NA),
@@ -1265,10 +1282,10 @@ tfma31 <- cbind(
                            paste("< 0.001"),
                            paste("= ", formatC(ma31$QEp, digits=3, format="f")))),
            "; ", "I^2", "= ", (formatC(ma31$I2, digits=1, format="f")), "%)")),
-  c( "With Diabetes", "(n/N)", paste(prema31$severe1,"/",prema31$n1), 
+  c( "With Hypertension", "(n/N)", paste(prema31$severe1,"/",prema31$n1), 
      paste(sum(prema31$severe1, na.rm=TRUE),"/", sum(prema31$n1, na.rm=TRUE))),
   
-  c( "Without Diabetes", "(n/N)", paste(prema31$severe2,"/",prema31$n2), 
+  c( "Without Hypertension", "(n/N)", paste(prema31$severe2,"/",prema31$n2), 
      paste(sum(prema31$severe2, na.rm=TRUE),"/",sum(prema31$n2, na.rm=TRUE))),
   
   c( "Relative Risk (95% CI)", NA,  prema31$rr, 
@@ -1329,10 +1346,10 @@ tfma32 <- cbind(
                            paste("< 0.001"),
                            paste("= ", formatC(ma32$QEp, digits=3, format="f")))),
            "; ", "I^2", "= ", (formatC(ma32$I2, digits=1, format="f")), "%)")),
-  c( "With Diabetes", "(n/N)", paste(prema32$icu1,"/",prema32$n1), 
+  c( "With Hypertension", "(n/N)", paste(prema32$icu1,"/",prema32$n1), 
      paste(sum(prema32$icu1, na.rm=TRUE),"/", sum(prema32$n1, na.rm=TRUE))),
   
-  c( "Without Diabetes", "(n/N)", paste(prema32$icu2,"/",prema32$n2), 
+  c( "Without Hypertension", "(n/N)", paste(prema32$icu2,"/",prema32$n2), 
      paste(sum(prema32$icu2, na.rm=TRUE),"/",sum(prema32$n2, na.rm=TRUE))),
   
   c( "Relative Risk (95% CI)", NA,  prema32$rr, 
@@ -1394,10 +1411,10 @@ tfma33 <- cbind(
                            paste("< 0.001"),
                            paste("= ", formatC(ma33$QEp, digits=3, format="f")))),
            "; ", "I^2", "= ", (formatC(ma33$I2, digits=1, format="f")), "%)")),
-  c( "With Diabetes", "(n/N)", paste(prema33$death1,"/",prema33$n1), 
+  c( "With Hypertension", "(n/N)", paste(prema33$death1,"/",prema33$n1), 
      paste(sum(prema33$death1, na.rm=TRUE),"/", sum(prema33$n1, na.rm=TRUE))),
   
-  c( "Without Diabetes", "(n/N)", paste(prema33$death2,"/",prema33$n2), 
+  c( "Without Hypertension", "(n/N)", paste(prema33$death2,"/",prema33$n2), 
      paste(sum(prema33$death2, na.rm=TRUE),"/",sum(prema33$n2, na.rm=TRUE))),
   
   c( "Relative Risk (95% CI)", NA,  prema33$rr, 
