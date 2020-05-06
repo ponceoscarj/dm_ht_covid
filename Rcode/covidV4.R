@@ -100,10 +100,9 @@ names(univ)[names(univ) == 'id...20']<- 'id'
 
 unimulti <- read.csv("C:/Users/Oscar Ponce/Documents/Research/GitHub/dm_ht_covid/databases/unimulti.csv")
 
-
-
-unimulti <- unimulti[!(unimulti$`Time of measure of exposure`=="Symptom onset"),-8]
 unimulti <- unimulti[!(unimulti$id %in% c(9123, 9171)), ]
+unimulti <- subset(unimulti, Time.of.measure.of.exposure!="Symptom onset")
+unimulti <- unimulti[,-8]
 
 names(unimulti)[4] <- 'unimulti'
 names(unimulti)[5] <- 'adjusted'
@@ -128,13 +127,12 @@ unimulti$p2 <- ifelse(unimulti$p == 0.001,
                       paste("<",formatC(unimulti$p, format='f', digits =3)), 
                       formatC(unimulti$p, format='f', digits =3)) 
 
+
 dm1 <- subset(unimulti, exposure == 'diabetes' & outcome == 'death' & unimulti == 'univariate')
 dm2 <- subset(unimulti, exposure == 'diabetes' & outcome == 'death' & unimulti == 'multivariate')
 
 ht1 <- subset(unimulti, exposure == 'hypertension' & outcome == 'severe' & unimulti == 'multivariate')
 ht2 <- subset(unimulti, exposure == 'hypertension' & outcome == 'death' & unimulti == 'univariate')
-
-
 
 univ$author <- info$author[match(univ$id, info$id)]
 
@@ -851,23 +849,17 @@ help("forestplot")
 #Plot ma28 - severe in diabetes
 
 prema28 <- escalc(measure="RR",ai=severe1, ci=severe2, n1i=n1, n2i=n2,
-                  subset=(final_exposure=="diabetes" & group=="general" 
-                          & !is.na(severe1)), data=univ)
-
-
-
+                  subset=(final_exposure=="diabetes" & !is.na(severe1)), data=univ)
 prema28 <- summary(prema28)
 
 prema28$rr <- paste(formatC((exp(prema28$yi)), format='f', digits=2),
                     " ","(", formatC((exp(prema28$ci.lb)), format='f', digits=2), "-",
                     formatC((exp(prema28$ci.ub)), format='f', digits=2),")")
 
-
-
 ma28 <- rma(measure="RR", yi,vi, data=prema28, method="REML")
 expma28 <- predict(ma28, transf = transf.exp.int)
 
-weights(ma28)
+#weights(ma28)
 boxsize <- (0.025*(weights(ma28)))
 
 tfma28 <- cbind( 
@@ -889,10 +881,12 @@ tfma28 <- cbind(
            " (",formatC(expma28$ci.lb, format='f', digits=2),
            "-", formatC(expma28$ci.ub, format='f', digits=2), ")")))
 
+
 tfma28 <- as_tibble(tfma28)
 
 tfma28 <- add_row(tfma28, .after = 8)
 tfma28 <- add_row(tfma28, .after = 10)
+
 
 rrsma28 <- structure(list(
   mean = c(NA, NA,  exp(prema28$yi), NA, expma28$pred, NA),
@@ -938,7 +932,7 @@ par(ask=F)
 
 
 prema29 <- escalc(measure="RR",ai=icu1, ci=icu2, n1i=n1, n2i=n2,
-                  subset=(final_exposure=="diabetes" & group=="general" & 
+                  subset=(final_exposure=="diabetes" & 
                             !is.na(icu1)), data=univ)
 prema29 <- summary(prema29)
 prema29$rr <- paste(formatC((exp(prema29$yi)), format='f', digits=2),
@@ -948,7 +942,7 @@ prema29$rr <- paste(formatC((exp(prema29$yi)), format='f', digits=2),
 ma29 <- rma(measure="RR", yi,vi, data=prema29, method="REML")
 expma29 <- predict(ma29, transf = transf.exp.int)
 
-weights(ma29)
+#weights(ma29)
 boxsize <- (0.01666667*(weights(ma29)))
 
 
@@ -1031,7 +1025,7 @@ prema30$rr <- paste(formatC((exp(prema30$yi)), format='f', digits=2),
 ma30 <- rma(measure="RR", yi,vi, data=prema30, method="REML")
 expma30 <- predict(ma30, transf = transf.exp.int)
 
-weights(ma30)
+#weights(ma30)
 boxsize <- (0.01666667*(weights(ma30)))
 
 
@@ -1104,7 +1098,7 @@ par(ask=F)
 
 
 prema31 <- escalc(measure="RR",ai=severe1, ci=severe2, n1i=n1, n2i=n2,
-                  subset=(final_exposure=="hypertension" & group=="general" &
+                  subset=(final_exposure=="hypertension" &
                             !is.na(severe1)), data=univ)
 prema31 <- summary(prema31)
 prema31$rr <- paste(formatC((exp(prema31$yi)), format='f', digits=2),
@@ -1114,7 +1108,7 @@ prema31$rr <- paste(formatC((exp(prema31$yi)), format='f', digits=2),
 ma31 <- rma(measure="RR", yi,vi, data=prema31, method="REML")
 expma31 <- predict(ma31, transf = transf.exp.int)
 
-weights(ma31)
+#weights(ma31)
 boxsize <- (0.025*(weights(ma31)))
 
 
@@ -1189,7 +1183,7 @@ par(ask=F)
 
 
 prema32 <- escalc(measure="RR",ai=icu1, ci=icu2, n1i=n1, n2i=n2,
-                  subset=(final_exposure=="hypertension" & group=="general" &
+                  subset=(final_exposure=="hypertension" &
                             !is.na(icu1)), data=univ)
 prema32 <- summary(prema32)
 prema32$rr <- paste(formatC((exp(prema32$yi)), format='f', digits=2),
@@ -1199,7 +1193,7 @@ prema32$rr <- paste(formatC((exp(prema32$yi)), format='f', digits=2),
 ma32 <- rma(measure="RR", yi,vi, data=prema32, method="REML")
 expma32 <- predict(ma32, transf = transf.exp.int)
 
-weights(ma32)
+#weights(ma32)
 boxsize <- (0.01666667*(weights(ma32)))
 
 
@@ -1225,8 +1219,8 @@ tfma32 <- cbind(
 
 tfma32 <- as_tibble(tfma32)
 
-tfma32 <- add_row(tfma32, .after = 5)
-tfma32 <- add_row(tfma32, .after = 7)
+tfma32 <- add_row(tfma32, .after = 6)
+tfma32 <- add_row(tfma32, .after = 8)
 
 
 rrsma32 <- structure(list(
@@ -1234,7 +1228,7 @@ rrsma32 <- structure(list(
   lower = c(NA, NA,  exp(prema32$ci.lb), NA,  expma32$ci.lb, NA),
   upper = c(NA, NA, exp(prema32$ci.ub), NA, expma32$ci.ub, NA)),
   .Names = c("mean", "lower", "upper"),
-  row.names = c(NA, -8L),
+  row.names = c(NA, -9L),
   class = "data.frame")
 
 trellis.device(device="windows", height = 25, width = 40, color=TRUE)
@@ -1249,7 +1243,7 @@ forestplot(tfma32,
            lineheight=unit(0.6,'cm'),
            line.margin = 2,
            boxsize = c(NA, NA, boxsize, NA, 1, NA),
-           is.summary = c(T, T, rep(F, 4), T, F),
+           is.summary = c(T, T, rep(F, 5), T, F),
            align = c("l","c", "c"),
            ci.vertices = TRUE,
            txt_gp = fpTxtGp(label =gpar (cex=0.8), 
@@ -1282,7 +1276,7 @@ prema33$rr <- paste(formatC((exp(prema33$yi)), format='f', digits=2),
 ma33 <- rma(measure="RR", yi,vi, data=prema33, method="REML")
 expma33 <- predict(ma33, transf = transf.exp.int)
 
-weights(ma33)
+#weights(ma33)
 boxsize <- (0.025*(weights(ma33)))
 
 
@@ -1365,32 +1359,34 @@ expma34 <- predict(ma34, transf = transf.exp.int)
 x <- data.frame(rbind(
   c( "exposure", "outcome", "analysis (eff)", "nstudies", "n", "N", "i2", "eff", "llci", "ulci", "eff2", "ci", "p"),
   
-  c(NA, "Severe COVID-19", "Unadjusted (RR)", ma28[[14]], sum(ma28[[42]], ma28[[44]]), sum(ma28[[50]]), ma28[[25]], expma28[[1]], expma28[[3]], expma28[[4]], NA, NA, ma28[[5]]),
+  c(NA, "Severe COVID-19", "Unadjusted (RR)", ma28[[14]], sum(ma28[[42]], ma28[[44]]), sum(ma28[[50]]), 
+    ma28[[25]], expma28[[1]], expma28[[3]], expma28[[4]], NA, NA, ma28[[5]]),
   
-  c(NA, "ICU admission", "Unadjusted (RR)",  ma29[[14]], sum(ma29[[42]], ma29[[44]]), sum(ma29[[50]]), ma29[[25]], expma29[[1]], expma29[[3]], expma29[[4]], NA, NA, ma29[[5]]),
+  c(NA, "ICU admission", "Unadjusted (RR)",  ma29[[14]], sum(ma29[[42]], ma29[[44]]), sum(ma29[[50]]), 
+    ma29[[25]], expma29[[1]], expma29[[3]], expma29[[4]], NA, NA, ma29[[5]]),
   
-  c(NA, "Mortality", "Unadjusted (RR)", ma30[[14]], sum(ma30[[42]], ma30[[44]]), sum(ma30[[50]]), ma30[[25]], expma30[[1]], expma30[[3]], expma30[[4]], NA, NA, ma30[[5]]),
-  c(NA, NA, "Unadjusted (HR)", 1, "NR", dm1$n, "NA", dm1$eff, dm1$llci, dm1$ulci, NA, NA, dm1$p2),
-  c(NA, NA,  "Adjusted (HR)*", 1, "NR", dm2$n, "NA", dm2$eff, dm2$llci, dm2$ulci, NA, NA, dm2$p2),
+  c(NA, "Mortality", "Unadjusted (RR)", ma30[[14]], sum(ma30[[42]], ma30[[44]]), sum(ma30[[50]]), 
+    ma30[[25]], expma30[[1]], expma30[[3]], expma30[[4]], NA, NA, ma30[[5]]),
+  c(NA, NA,  "Adjusted (HR)*", 1, "NR", dm2$n, NA, dm2$eff, dm2$llci, dm2$ulci, NA, NA, dm2$p2),
   
   
-  c(NA, "Severe COVID-19", "Unadjusted (RR)", ma31[[14]], sum(ma31[[42]], ma31[[44]]), sum(ma31[[50]]), ma31[[25]], expma31[[1]], expma31[[3]], expma31[[4]], NA, NA, ma31[[5]]),
-  c(NA, NA, "Adjusted (OR)**", 1, "NR", ht1$n, "NA", ht1$eff, ht1$llci, ht1$ulci, NA, NA, ht1$p2),
+  c(NA, "Severe COVID-19", "Unadjusted (RR)", ma31[[14]], sum(ma31[[42]], ma31[[44]]), sum(ma31[[50]]), 
+    ma31[[25]], expma31[[1]], expma31[[3]], expma31[[4]], NA, NA, ma31[[5]]),
+  c(NA, NA, "Adjusted (OR)**", 1, "NR", ht1$n, NA, ht1$eff, ht1$llci, ht1$ulci, NA, NA, ht1$p2),
   
-  c(NA, "ICU admission", "Unadjusted (RR)", ma32[[14]], sum(ma32[[42]], ma32[[44]]), sum(ma32[[50]]), ma32[[25]], expma32[[1]], expma32[[3]], expma32[[4]], NA, NA, ma32[[5]]),
+  c(NA, "ICU admission", "Unadjusted (RR)", ma32[[14]], sum(ma32[[42]], ma32[[44]]), sum(ma32[[50]]), 
+    ma32[[25]], expma32[[1]], expma32[[3]], expma32[[4]], NA, NA, ma32[[5]]),
   
-  c(NA, "Mortality", "Unadjusted (RR)", ma33[[14]], sum(ma33[[42]], ma33[[44]]), sum(ma33[[50]]), ma33[[25]], expma33[[1]], expma33[[3]], expma33[[4]], NA, NA, ma33[[5]]),
+  c(NA, "Mortality", "Unadjusted (RR)", ma33[[14]], sum(ma33[[42]], ma33[[44]]), sum(ma33[[50]]), 
+    ma33[[25]], expma33[[1]], expma33[[3]], expma33[[4]], NA, NA, ma33[[5]]),
   
-  c(NA, "Severe COVID-19", "Unadjusted (RR)", ma34[[14]], sum(ma34[[42]], ma34[[44]]), sum(ma34[[50]]), "NA", expma34[[1]], expma34[[3]], expma34[[4]], NA, NA, ma34[[5]]),
-  c(NA, NA, "Unadjusted (HR)", 1, "NR", ht2$n, "NA", ht2$eff, ht2$llci, ht2$ulci, NA, NA, ht2$p2)), 
+  c(NA, "Severe COVID-19", "Unadjusted (RR)", ma34[[14]], sum(ma34[[42]], ma34[[44]]), sum(ma34[[50]]), 
+    NA, expma34[[1]], expma34[[3]], expma34[[4]], NA, NA, ma34[[5]])),
   stringsAsFactors = FALSE)
 
 
 colnames(x) <- x[1,]
 x <- x[-1, ] 
-
-View(x)
-
 x[,7:10]<- sapply((x[,7:10]), as.numeric)
 x$ci <- ifelse(!is.na(x$N) & is.na(x$ci),
                paste("(",formatC(x$llci, format='f', digits =2),"-", formatC(x$ulci, format='f', digits=2),")"),
@@ -1409,16 +1405,14 @@ x$p1 <- ifelse(x$p1 == "0.000", paste("<0.001"), x$p1)
 
 x <- x %>% add_row(.before = 1) 
 x <- x %>% add_row(outcome="Diabetes", .before = 2) 
-x <- x %>% add_row(.before = 8) 
-x <- x %>% add_row(outcome="Hypertension", .before = 9) 
-x <- x %>% add_row(.before = 14) 
-x <- x %>% add_row(outcome="Diabetes and Hypertension", .before = 15) 
-x <- x %>% add_row(.before = 18) 
+x <- x %>% add_row(.before = 7) 
+x <- x %>% add_row(outcome="Hypertension", .before = 8) 
+x <- x %>% add_row(.before = 13) 
+x <- x %>% add_row(outcome="Diabetes and Hypertension", .before = 14) 
+x <- x %>% add_row(.before = 16) 
 
-sub1 <- c(3:5, 10, 12, 13, 16)
+sub1 <- c(3:5, 9, 11, 12, 15)
 x$outcome[sub1] <- paste("    ",x$outcome[sub1]) 
-
-
 
 
 tabletext <- cbind( 
@@ -1430,17 +1424,18 @@ tabletext <- cbind(
   c( "Effect size (95%CI)", x$effci),
   c( "p value", x$p1))
 
+
 rrs <- structure(list(
   mean = c(NA,  x$eff),
   lower = c(NA,  x$llci),
   upper = c(NA,  x$ulci)),
   .Names = c("mean", "lower", "upper"),
-  row.names = c(NA, -19),
+  row.names = c(NA, -17),
   class = "data.frame")
 
 
 
-trellis.device(device="windows", height = 30, width = 40, color=TRUE)
+trellis.device(device="windows", height = 30, width = 50, color=TRUE)
 
 
 forestplot(tabletext,
@@ -1448,15 +1443,15 @@ forestplot(tabletext,
            graph.pos = 6,
            
            rrs,new_page = TRUE,
-           colgap = unit(2, "mm"),
-           hrzl_lines = list("2" = gpar (lwd=2, columns=c(1:8), col="black"), "4" = gpar (lwd=0.1, columns=c(1:6), col="black")
-                             , "11" = gpar (lwd=0.1, columns=c(1:6), col="black"), 
-                             "17" = gpar (lwd=0.1, columns=c(1:6), col="black"), 
-                             "20" = gpar (lwd=2, columns=c(1:8), col="black")),
+           colgap = unit(6, "mm"),
+           hrzl_lines = list("2" = gpar (lwd=2, columns=c(1:8), col="black"), 
+                             "4" = gpar (lwd=0.1, columns=c(1:6), col="black"), 
+                             "10" = gpar (lwd=0.1, columns=c(1:6), col="black"), 
+                             "16" = gpar (lwd=0.1, columns=c(1:6), col="black")),
            lineheight=unit(0.8,'cm'),
            line.margin = 2,
-           is.summary = c(T,F,T, rep(F, 6), T, rep(F, 5), T, F, F),
-           align = c("l","l"),
+           is.summary = c(T,F,T, rep(F, 5), T, rep(F, 5), T, F, F),
+           align = c("l","l","c","c","l","l","l","l"),
            
            
            ci.vertices = TRUE,
@@ -1473,12 +1468,78 @@ forestplot(tabletext,
            xlog=TRUE,
            clip=TRUE,
            boxsize = unit(0.3, "cm"), 
+           graphwidth = unit(10, "cm"),
            lwd.xaxis = 1, 
            lwd.ci = 3.3,
            lwd.zero = 2)
 
-par(ask=F)
 
 
+
+tabletext2 <- cbind( 
+  c( "Disease and outcome", NA, "Diabetes",
+     "Mortality", NA, "Diabetes and Hypertension",
+     "Severe COVID-19", NA),
+  c( "Effect estimate", NA, NA,
+     "Unadjusted (HR)", NA, NA,
+     "Unadjusted (HR)", NA),
+  c( "N of Studies",NA, NA,
+     1, NA, NA, 
+     1, NA),
+  c( "Total N", NA, NA,
+     dm1$n, NA, NA,
+     ht2$n, NA),
+  c( "I^2", NA, NA,
+     "na", NA, NA,
+     "na", NA),
+  c( "Effect size (95%CI)", NA, NA,
+     paste(formatC(dm1$eff, format='f', digits =2), "(", formatC(dm1$llci, format='f', digits =2),
+           "-", formatC(dm1$ulci, format='f', digits =2),")"), NA, NA,
+     paste(formatC(ht2$eff, format='f', digits =2), "(", formatC(ht2$llci, format='f', digits =2),
+           "-", formatC(ht2$ulci, format='f', digits =2),")"), NA),
+  c( "p value", NA, NA,
+     dm1$p2, NA, NA,
+     ht2$p2, NA))
+
+rrs2 <- structure(list(
+  mean = c(NA,  NA, NA, dm1$eff, NA, NA, ht2$eff, NA),
+  lower = c(NA,  NA, NA, dm1$llci, NA, NA, ht2$llci, NA),
+  upper = c(NA,  NA, NA, dm1$ulci, NA, NA, ht2$ulci, NA)),
+  .Names = c("mean", "lower", "upper"),
+  row.names = c(NA, -8),
+  class = "data.frame")
+
+
+trellis.device(device="windows", height = 30, width = 50, color=TRUE)
+
+forestplot(tabletext2,
+           fn.ci_norm = fpDrawDiamondCI,
+           graph.pos = 6,
+           
+           rrs2,new_page = TRUE,
+           colgap = unit(6, "mm"),
+           hrzl_lines = list("2" = gpar (lwd=2, columns=c(1:8), col="black")),
+           lineheight=unit(0.8,'cm'),
+           line.margin = 2,
+           is.summary = c(T,T,T, rep(F, 2), T, rep(F, 2)),
+           align = c("l","l"),
+           ci.vertices = TRUE,
+           txt_gp = fpTxtGp(ticks = gpar(cex = 1.2, fontface="bold"),
+                            xlab  = gpar(cex = 1.2),
+                            label = gpar(cex = 1.2),
+                            summary = gpar(cex = 1.2)),
+           col=fpColors(box="black", 
+                        line="darkgrey", 
+                        summary="black", 
+                        zero='black', 
+                        axes='grey20'),
+           xticks = c(0.5,1, 2, 4),
+           xlog=TRUE,
+           clip=TRUE,
+           boxsize = unit(0.3, "cm"), 
+           graphwidth = unit(10, "cm"),
+           lwd.xaxis = 1, 
+           lwd.ci = 3.3,
+           lwd.zero = 2)
 
 
