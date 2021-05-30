@@ -31,8 +31,6 @@ library(DescTools)
 
 
 ## Data cleaning & Databases information
-SALSERO Q UE TAL
-
 
 Data was cleaned via RStudio. All databases are found in the file named "Databases" located in the github projected called "DM_HT_COVID19". 
 
