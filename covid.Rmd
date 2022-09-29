@@ -3,7 +3,20 @@ title: "DM_HT_COVID19"
 author: "Oscar J. Ponce & Francisco Barrera"
 date: "5/2/2020"
 output: github_document
+knit: (function(inputFile, encoding) { rmarkdown::render(inputFile, encoding = encoding, output_file = paste0(dirname(inputFile),'/README.md')) })
+
 ---
+
+<i>Analysis and visualization developed by [Oscar J. Ponce](https://twitter.com/PonceOJ) and [Francisco J. Barrera](https://twitter.com/barrera_md)</i>
+
+## Publication
+
+*Article was published in 2020. To know more about the methodology, results and conclusion of this study follow the link below.*
+
+| Title      | [Prevalence of Diabetes and Hypertension and Their Associated Risks for Poor Outcomes in Covid-19 Patients](https://doi.org/10.1210/jendso/bvaa102) |
+| :--- | :---- |
+| Journal      | Journal of the Endocrine Society       |
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
@@ -50,19 +63,17 @@ Packages used to develop forest plots:
 
 
 ```{r cleaning1_general_info, echo=FALSE, message=FALSE, warning=FALSE}
-info <- read.csv("C:/Users/Oscar Ponce/Documents/Research/GitHub/dm_ht_covid/databases/general_info.csv")
-
+info <- read.csv("databases/general_info.csv")
 
 names(info)[1] <- 'id'
 names(info)[3] <- 'author'
 
 info$author[info$author=="?CDC COVID-19 RT, b."] <- "CDC COVID-19 RT, b."
 
-View(info)
 ```
 
 ```{r cleaning2_proportions, echo=FALSE}
-prev1 <- read.csv("C:/Users/Oscar Ponce/Documents/Research/GitHub/dm_ht_covid/databases/proportions.csv")
+prev1 <- read.csv("databases/proportions.csv")
 
 
 names(prev1)[names(prev1) == "analyzed_n"] <- "n"
@@ -107,7 +118,7 @@ prev1$author <- info$author[match(prev1$id, info$id)]
 ```
 
 ```{r cleaning3_effectsize, echo=FALSE}
-univ <- read.csv("C:/Users/Oscar Ponce/Documents/Research/GitHub/dm_ht_covid/databases/effectsize.csv")
+univ <- read.csv("databases/effectsize.csv")
 
 names(univ)[names(univ) == "selection_criteria"] <- 'group'
 univ$group[univ$group == 'general_prexisting_cardiac_conditions'] <- 'cardiac'
@@ -121,7 +132,7 @@ univ$author <- info$author[match(univ$id, info$id)]
 ```
 
 ```{r cleaning4_unimulti, echo=FALSE}
-unimulti <- read.csv("C:/Users/Oscar Ponce/Documents/Research/GitHub/dm_ht_covid/databases/unimulti.csv")
+unimulti <- read.csv("databases/unimulti.csv")
 
 unimulti <- unimulti[!(unimulti$id %in% c(9123, 9171)), ]
 unimulti <- subset(unimulti, Time.of.measure.of.exposure!="Symptom onset")
@@ -215,21 +226,17 @@ expma12 <- predict(ma12, transf=transf.ilogit, digits=3)
 ```{r summary_prevalence_forestplots, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=12}
 x <- data.frame(rbind(
   c( "subgroup", "studies", "n", "N", "i2", "est", "llci", "ulci"),
-  c( "Overall",  ma1[[15]], sum(ma1[[55]]), sum(ma1[[61]]), ma1[[28]], expma1[[1]], expma1[[3]], expma1[[4]]), 
-  c( "Outpatient",  ma2[[15]], 27, sum(ma2[[50]]), "na", expma2[[1]], expma2[[3]], expma2[[4]]), 
-  c( "Inpatient",  ma3[[15]], sum(ma3[[55]]), sum(ma3[[61]]), ma3[[28]], expma3[[1]], expma3[[3]], expma3[[4]]), 
-  c( "Severe COVID-19",  ma4[[15]], sum(ma4[[55]]), sum(ma4[[61]]), ma4[[28]], expma4[[1]], expma4[[3]], expma4[[4]]),
-  c( "Non-survivors",  ma5[[15]], 16, sum(ma5[[50]]), "na", expma5[[1]], expma5[[3]], expma5[[4]]),
-  
-  c( "Overall",  ma6[[15]], sum(ma6[[55]]), sum(ma6[[61]]), ma6[[28]], expma6[[1]], expma6[[3]], expma6[[4]]), 
-  c( "Outpatient",  ma7[[15]], sum(ma7[[55]]), sum(ma7[[61]]), ma7[[28]], expma7[[1]], expma7[[3]], expma7[[4]]), 
-  c( "Inpatient",  ma8[[15]], sum(ma8[[55]]), sum(ma8[[61]]), ma8[[28]], expma8[[1]], expma8[[3]], expma8[[4]]), 
-  c( "Severe COVID-19",  ma9[[15]], sum(ma9[[55]]), sum(ma9[[61]]), ma9[[28]], expma9[[1]], expma9[[3]], expma9[[4]]),  
-  
-  c( "Overall",  ma10[[15]], sum(ma10[[55]]), sum(ma10[[61]]), ma10[[28]], expma10[[1]], expma10[[3]], expma10[[4]]), 
-  c( "Severe COVID-19",  ma12[[15]], 2, sum(ma12[[50]]), "na", expma12[[1]], expma12[[3]], expma12[[4]]) 
-  
-), 
+  c( "Overall",  ma1[["k"]], sum(ma1[["outdat.f"]][["xi"]]), sum(ma1[["outdat.f"]][["ni"]]), ma1[["I2"]], expma1[["pred"]], expma1[["ci.lb"]], expma1[["ci.ub"]]), 
+  c( "Outpatient",  ma2[["k"]], 27, sum(ma2[["ni"]]), "na", expma2[["pred"]], expma2[["ci.lb"]], expma2[["ci.ub"]]), 
+  c( "Inpatient",  ma3[["k"]], sum(ma3[["outdat.f"]][["xi"]]), sum(ma3[["outdat.f"]][["ni"]]), ma3[["I2"]], expma3[["pred"]], expma3[["ci.lb"]], expma3[["ci.ub"]]), 
+  c( "Severe COVID-19",  ma4[["k"]], sum(ma4[["outdat.f"]][["xi"]]),  sum(ma4[["outdat.f"]][["ni"]]), ma4[["I2"]], expma4[["pred"]], expma4[["ci.lb"]], expma4[["ci.ub"]]),
+  c( "Non-survivors",  ma5[["k"]], 16, sum(ma5[["ni"]]), "na", expma5[["pred"]], expma5[["ci.lb"]], expma5[["ci.ub"]]),
+  c( "Overall",  ma6[["k"]], sum(ma6[["outdat.f"]][["xi"]]), sum(ma6[["outdat.f"]][["ni"]]), ma6[["I2"]], expma6[["pred"]], expma6[["ci.lb"]], expma6[["ci.ub"]]), 
+  c( "Outpatient",  ma7[["k"]], sum(ma7[["outdat.f"]][["xi"]]), sum(ma7[["outdat.f"]][["ni"]]), ma7[["I2"]], expma7[["pred"]], expma7[["ci.lb"]], expma7[["ci.ub"]]), 
+  c( "Inpatient",  ma8[["k"]], sum(ma8[["outdat.f"]][["xi"]]), sum(ma8[["outdat.f"]][["ni"]]), ma8[["I2"]], expma8[["pred"]], expma8[["ci.lb"]], expma8[["ci.ub"]]), 
+  c( "Severe COVID-19",  ma9[["k"]], sum(ma9[["outdat.f"]][["xi"]]), sum(ma9[["outdat.f"]][["ni"]]), ma9[["I2"]], expma9[["pred"]], expma9[["ci.lb"]], expma9[["ci.ub"]]),  
+  c( "Overall",  ma10[["k"]], sum(ma10[["outdat.f"]][["xi"]]), sum(ma10[["outdat.f"]][["ni"]]), ma10[["I2"]], expma10[["pred"]], expma10[["ci.lb"]], expma10[["ci.ub"]]), 
+  c( "Severe COVID-19",  ma12[["k"]], 2, sum(ma12[["ni"]]), "na", expma12[["pred"]], expma12[["ci.lb"]], expma12[["ci.ub"]])), 
 stringsAsFactors = FALSE) 
 
 colnames(x) <- x[1,]
@@ -879,7 +886,6 @@ expma34 <- predict(ma34, transf = transf.exp.int)
 
 ```{r summary_forestplots, echo=FALSE, fig.height=6, fig.width=15}
 
-
 x <- data.frame(rbind(
   c( "exposure", "outcome", "analysis (eff)", "nstudies", "n", "N", "i2", "eff", "llci", "ulci", "eff2", "ci", "p"),
   
@@ -1020,9 +1026,9 @@ tabletext2 <- cbind(
      dm1$p2, NA, NA,
      ht2$p2, NA))
 
-tabletext2 <- as.data.frame(tabletext2)
+#tabletext2 <- as.data.frame(tabletext2)
 sub2 <- c(4,7)
-tabletext2$V1[sub2] <- paste("    ",tabletext2$V1[sub2]) 
+tabletext2[,1][sub2] <- paste("    ",tabletext2[,1][sub2]) 
 
 
 
@@ -1038,11 +1044,11 @@ rrs2 <- structure(list(
 forestplot(tabletext2,
            fn.ci_norm = fpDrawDiamondCI,
            graph.pos = 6,
-           
-           rrs2,new_page = TRUE,
+           rrs2, 
+           new_page = TRUE,
            colgap = unit(6, "mm"),
            hrzl_lines = list("2" = gpar (lwd=2, columns=c(1:8), col="black")),
-           lineheight=unit(0.8,'cm'),
+           lineheight= unit(0.8,'cm'),
            line.margin = 2,
            is.summary = c(T,T,T, rep(F, 2), T, rep(F, 2)),
            align = c("l","l"),
@@ -1101,6 +1107,8 @@ tfma28 <- cbind(
 tfma28 <- as_tibble(tfma28)
 tfma28 <- add_row(tfma28, .after = 8)
 tfma28 <- add_row(tfma28, .after = 10)
+colnames(tfma28) <- NULL
+tfma28 <- as.matrix(tfma28)
 
 rrsma28 <- structure(list(
   mean = c(NA, NA,  exp(prema28$yi), NA, expma28$pred, NA),
@@ -1165,6 +1173,7 @@ tfma29 <- cbind(
 tfma29 <- as_tibble(tfma29)
 tfma29 <- add_row(tfma29, .after = 5)
 tfma29 <- add_row(tfma29, .after = 7)
+tfma29 <- as.matrix(tfma29)
 
 rrsma29 <- structure(list(
   mean = c(NA, NA,  exp(prema29$yi), NA, expma29$pred, NA),
@@ -1229,7 +1238,7 @@ tfma30 <- cbind(
 tfma30 <- as_tibble(tfma30)
 tfma30 <- add_row(tfma30, .after = 6)
 tfma30 <- add_row(tfma30, .after = 8)
-
+tfma30 <- as.matrix(tfma30)
 
 rrsma30 <- structure(list(
   mean = c(NA, NA,  exp(prema30$yi), NA, expma30$pred, NA),
@@ -1296,6 +1305,7 @@ tfma31 <- cbind(
 tfma31 <- as_tibble(tfma31)
 tfma31 <- add_row(tfma31, .after = 10)
 tfma31 <- add_row(tfma31, .after = 12)
+tfma31 <- as.matrix(tfma31)
 
 rrsma31 <- structure(list(
   mean = c(NA, NA,  exp(prema31$yi), NA, expma31$pred, NA),
@@ -1360,7 +1370,7 @@ tfma32 <- cbind(
 tfma32 <- as_tibble(tfma32)
 tfma32 <- add_row(tfma32, .after = 6)
 tfma32 <- add_row(tfma32, .after = 8)
-
+tfma32 <- as.matrix(tfma32)
 
 rrsma32 <- structure(list(
   mean = c(NA, NA,  exp(prema32$yi), NA, expma32$pred, NA),
@@ -1425,7 +1435,7 @@ tfma33 <- cbind(
 tfma33 <- as_tibble(tfma33)
 tfma33 <- add_row(tfma33, .after = 10)
 tfma33 <- add_row(tfma33, .after = 12)
-
+tfma33 <- as.matrix(tfma33)
 
 rrsma33 <- structure(list(
   mean = c(NA, NA,  exp(prema33$yi), NA, expma33$pred, NA),
