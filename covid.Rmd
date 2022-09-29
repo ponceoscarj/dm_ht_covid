@@ -21,7 +21,7 @@ knit: (function(inputFile, encoding) { rmarkdown::render(inputFile, encoding = e
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
 knitr::opts_chunk$set(dpi=900)
-knitr::opts_chunk$set(dev="svg")
+knitr::opts_chunk$set(fig.path = "forestplots/", dev='svg') # dev = 'png'
 
 library("metafor")
 library("dplyr")
